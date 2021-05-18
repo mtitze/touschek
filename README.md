@@ -11,7 +11,6 @@ pip install -U git+https://github.com/mtitze/touschek.git
 ## Usage
 
 ```python
-from touschek import touscheck
-
-# etc.
+from touschek import touschek
+touschek()
 ```

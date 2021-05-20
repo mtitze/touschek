@@ -6,3 +6,7 @@ __pycache__/
 .vscode/
 dist/
 input/
+
+# madx and madx_ptc output
+internal_mag_pot.txt
+ptc_twiss

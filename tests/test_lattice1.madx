@@ -1,0 +1,8 @@
+TITLE, "FODO Lattice";
+d1: drift, l=0.55;
+q1: quadrupole, l=0.2, k1=1.2;
+q2: quadrupole, l=0.4, k1=-1.2;
+b1: sbend, l=1.5, angle=0.392701, e1=0.1963505, e2=0.1963505;
+cell: line=(q1, d1, b1, d1, q2, d1, b1, d1, q1);
+ring: line=(cell, cell, cell, cell, cell, cell, cell, cell);
+USE, SEQUENCE=ring;

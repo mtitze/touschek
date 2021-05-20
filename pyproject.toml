@@ -5,7 +5,7 @@ description = ""
 authors = ["Malte Titze <mtitze@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.8,<3.10"
 cpymad = "^1.8.1"
 argparse = "^1.4.0"
 
@@ -13,6 +13,9 @@ argparse = "^1.4.0"
 pytest = "^5.2"
 black = "^21.5b1"
 pylint = "^2.8.2"
+LatticeJSON = "^0.1.5"
+matplotlib = "^3.4.2"
+scipy = "^1.6.3"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

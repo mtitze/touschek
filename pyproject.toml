@@ -8,16 +8,16 @@ authors = ["Malte Titze <mtitze@users.noreply.github.com>"]
 python = ">=3.8,<3.10"
 cpymad = "^1.8.1"
 argparse = "^1.4.0"
+scipy = "^1.6.3"
+matplotlib = "^3.4.2"
+progressbar = "^2.5"
+pandas = "^1.2.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-black = "^21.5b1"
-pylint = "^2.8.2"
-LatticeJSON = "^0.1.5"
-matplotlib = "^3.4.2"
-scipy = "^1.6.3"
-jupyter = "^1.0.0"
+pandas = "^1.2.4"
 ipykernel = "^5.5.5"
+mpmath = "^1.2.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

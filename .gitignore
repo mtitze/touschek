@@ -7,12 +7,13 @@ __pycache__/
 dist/
 input/
 
-# madx and madx_ptc output
-internal_mag_pot.txt
-ptc_twiss
-
 # jupyter notebooks
 *.ipynb
+*-checkpoint.*
 
 # other files
 results*
+poetry.lock
+
+normal.py
+mertens*

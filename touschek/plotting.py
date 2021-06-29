@@ -62,3 +62,18 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3):
     plt.xlabel(r'$x$ [m]')
     plt.ylabel(r'$z$ [m]')
     return plt
+
+def plot_touschek_losses(optics, touschek_results, figsize=(16, 4)):
+
+    plt.figure(figsize=figsize)
+    plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')
+    pos = optics.function.position.values
+    values = touschek_results['touschek_const']*touschek_results['touschek_ring']
+    plt.plot(pos, values)
+    plt.ylabel(r'$\frac{r_p^2 c N_p F(\tau_m, B_1, B_2)}{8 \pi \gamma^2 \tau_m \sigma_s \sqrt{\sigma_x^2 \sigma_y^2 - \delta^4 D_x^2 D_y^2}}$ [1/s]',
+            fontsize=14)
+    plt.xticks(optics.madx.table.twiss.s, optics.madx.table.twiss.keyword, rotation=90)
+    plt.twiny()
+    plt.scatter([pos[0], pos[-1]], [values[-1], values[-1]], alpha=0)
+    plt.xlabel(r'$s$ [m]', fontsize=14)
+    plt.show()

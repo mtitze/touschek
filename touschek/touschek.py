@@ -1,12 +1,13 @@
-# Script to compute the touschek lifetime.
+# Script to compute the Touschek lifetime.
 
 import numpy as np
 import argparse
 from scipy import integrate, constants
 from scipy.special import iv
 import progressbar
+import mpmath as mp
 
-from touschek.optics_tools import dee_to_dpp
+from touschek import dee_to_dpp
 
 if __name__ == "__main__":
     from _version import __version__
@@ -42,16 +43,18 @@ def F_integrand(kappa, kappa_m, b1, b2):
     else:
         return term2*iv(0, b2*tau)
 
-def F_integrand1(kappa, kappa_m, b1, b2):
+def F_integrand_mp(kappa, kappa_m, b1, b2):
     '''
+    mpmath-version of the Touschek integrand for arbitrary number precision.
+
     Note that kappa must be smaller than pi/2. The limits are:
     F_integrand(kappa = np.inf) = 0 and 
     F_integrand(kappa = 0) = -np.inf
     '''
-    tau = np.tan(kappa)**2
-    tau_m = np.tan(kappa_m)**2
+    tau = mp.tan(kappa)**2
+    tau_m = mp.tan(kappa_m)**2
     return ((2 + tau)**2*(tau/tau_m/(1 + tau) - 1)/tau + tau - \
-        np.sqrt(tau*tau_m*(1 + tau)) - (2 + 1/2/tau)*np.log(tau/tau_m/(1 + tau)))*np.sqrt(1 + tau)*np.exp(-b1*tau)*iv(0, b2*tau)
+        mp.sqrt(tau*tau_m*(1 + tau)) - (2 + 1/2/tau)*mp.log(tau/tau_m/(1 + tau)))*mp.sqrt(1 + tau)*mp.exp(-b1*tau)*mp.besseli(0, b2*tau)
 
 def prepare_touschek(optics, delta_pm, verbose=True):
     '''
@@ -69,7 +72,7 @@ def prepare_touschek(optics, delta_pm, verbose=True):
     kappa_m = np.arctan(np.sqrt(tau_m))
 
     if verbose:
-        print ('*** Touschek lifetime input parameters ***')
+        print ('\n*** Touschek lifetime input parameters ***')
         print (f'     Np: {N_p}')
         print (f' ex_rms: {epsilon_x}')
         print (f' ey_rms: {epsilon_y}')
@@ -119,7 +122,13 @@ def prepare_touschek(optics, delta_pm, verbose=True):
             'position': position}
 
 
-def lifetime(verbose=True, **kwargs):
+def lifetime(precise=False, precision=16, verbose=True, **kwargs):
+    '''
+    Compute the Touschek lifetime.
+
+    precise: If True, use arbitrary number precision to deal with the integrand.
+    precision: If precise==True, then this will denote the number of digits to be considered.
+    '''
 
     params = prepare_touschek(verbose=verbose, **kwargs)
 
@@ -128,21 +137,34 @@ def lifetime(verbose=True, **kwargs):
     touschek_const = params['const']
     kappa_m = params['kappa_m']
 
-    if verbose:
-        print (flush=True)
+    if verbose and precise:
+        print ('\n*** Arbitrary number precision mode ***')
+        print (f'Precision: {precision}')
+
+    print (flush=True) # clean line before showing progress bar
 
     touschek_ring = []
     bar = progressbar.ProgressBar(maxval=len(B1), \
         widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
     bar.start()
-    for l in range(len(B1)):
-        bar.update(l + 1)
-        touschek_ring.append(integrate.quad(lambda x: F_integrand(x, kappa_m=kappa_m, b1=B1[l], b2=B2[l]), kappa_m, np.pi/2)[0])
+    if not precise:
+        for l in range(len(B1)):
+            bar.update(l + 1)
+            touschek_ring.append(integrate.quad(lambda x: F_integrand(x, kappa_m=kappa_m, b1=B1[l], b2=B2[l]), kappa_m, np.pi/2)[0])
+    else:
+        mp.dps = precision
+        km = mp.mpf(kappa_m)
+        b1m = mp.mpf(1)*B1
+        b2m = mp.mpf(1)*B2
+        for l in range(len(B1)):
+            bar.update(l + 1)
+            integrand_mp = lambda x: F_integrand_mp(x, kappa_m=km, b1=b1m[l], b2=b2m[l])
+            touschek_ring.append(float(mp.quad(integrand_mp, [km, mp.pi/2])))
     bar.finish()
-    touschek_ring = np.array(touschek_ring)
- 
+
     position = params['position']
     ds = np.diff(position)
+    touschek_ring = np.array(touschek_ring)
     touschek_lifetime_i = sum(touschek_const[1:]*touschek_ring[1:]*ds)/sum(ds)
     lifetime = 1/touschek_lifetime_i
 
@@ -151,5 +173,5 @@ def lifetime(verbose=True, **kwargs):
         print (f'                  [h]: {lifetime/60/60:.3f}')
 
     return {'lifetime': lifetime, 'touschek_ring': touschek_ring, 
-    'B1': B1, 'B2': B2, 's': position, 'touschek_const': touschek_const}
+    'B1': B1, 'B2': B2, 's': position, 'touschek_const': touschek_const, 'kappa_m': kappa_m}
     

@@ -7,8 +7,11 @@ from scipy import constants
 import itertools
 
 import warnings
+import touschek
 
-from touschek.plotting import plot_survey
+from touschek.plotting import plot_survey, plot_touschek_losses
+from touschek.touschek import lifetime
+from touschek import dee_to_dpp
 
 def init_madx(lattice: str, show_init=True, **kwargs):
     '''
@@ -74,18 +77,6 @@ def dispersion_drift(s, disp, ddisp):
     Return the dispersion function and d(dispersion)/ds-function of a drift.
     '''
     return lambda x: ddisp*(x - s) + disp, lambda x: ddisp*np.ones(len(x))
-
-def dee_to_dpp(dee, beta0):
-    '''
-    Convert dE/E to dp/p in the absence of an electric potential.
-    '''
-    return np.sqrt((dee + 1)**2/beta0**2 + 1.0 - 1/beta0**2) - 1
-
-def dpp_to_dee(dpp, beta0):
-    '''
-    Convert dp/p to dE/E in the absence of an electric potential.
-    '''
-    return np.sqrt((dpp + 1)**2 - beta0**2 + 1) - 1
 
 def test_tune(optics):
     print ('TUNE TEST')
@@ -243,7 +234,7 @@ class optics:
             one_turn_maps[i, j, :] = getattr(twiss_table, f're{i + 1}{j + 1}')
         return one_turn_maps
 
-    def compute_optics_functions(self, n_slices=41, resolution=201, style='simple', verbose=True):
+    def compute_optics_functions(self, n_slices=6, resolution=11, style='simple', verbose=True):
         '''
         Compute the optics functions for a given lattice, using the MAD-X twiss functionality.
         
@@ -251,6 +242,11 @@ class optics:
         =====
         n_slices: number of slices to split elements when computing the MAD-X thin lattice
         resolution: number of points/m for drift sections.
+
+        Recommendation:
+        For quick tests, n_slices=6, resolution=11 should be fine. If more precision is
+        required, for example to determine the tune, then n_slices=41, resolution=201 turned
+        out to be sufficient.
         '''
         if verbose:
             print ('Computing optics functions with the following parameters:')
@@ -579,7 +575,7 @@ class optics:
         self.beam.sige.value = natural_parameters['nat_dee']
 
         if verbose:
-            print ('Updating beam parameters using natural values')
+            print ('\nUpdating beam parameters using natural values')
             print (f'ex: OLD: {old_ex_value}, NEW: {self.beam.ex.value}')
             print (f'exn: OLD: {old_exn_value}, NEW: {self.beam.exn.value}')      
             if update_ey:
@@ -588,9 +584,20 @@ class optics:
             print (f'sigt: OLD: {old_sigt_value}, NEW: {self.beam.sigt.value}')
             print (f'sige: OLD: {old_sige_value}, NEW: {self.beam.sige.value}')
 
+    def touschek_lifetime(self, precise=False, precision=16, verbose=True, **kwargs):
+        '''
+        Compute the touschek lifetime for the given optics.
+        '''
+        nat = self.get_natural_parameters(verbose=verbose, **kwargs)
+        self.update_beam(nat, verbose=verbose)
+        return lifetime(optics=self, delta_pm=nat['momentum_acceptance'], 
+                        precise=precise, precision=precision, verbose=verbose)
 
     def plot_survey(self, **kwargs):
         plot_survey(madx=self.madx, **kwargs)
+
+    def plot_touschek_losses(self, touschek_results, **kwargs):
+        plot_touschek_losses(optics=self, touschek_results=touschek_results, **kwargs)
 
     def test_tune(self, **kwargs):
         if not hasattr(self, 'function'):

@@ -117,16 +117,20 @@ class beam:
         self.description = description
 
 class optics:
-    def __init__(self, lattice: str, beam_params: dict, sequence_name='ring', **kwargs):
+    def __init__(self, lattice: str, beam_params: dict, sequence_name='ring', verbose=True, **kwargs):
         self.lattice = lattice
         self.sequence_name = sequence_name
+        self.verbose = verbose
         self.madx = init_madx(lattice=lattice, **kwargs)
         self.madx.beam(**beam_params)
         self.get_beam_parameters(madx=self.madx)
 
-    def get_beam_parameters(self, madx=None, update_only_if_different=True, verbose=True):
+    def get_beam_parameters(self, madx=None, update_only_if_different=True):
         '''
         Get beam parameters from given MAD-X instance.
+
+        update_only_if_different: If True, then update existing beam parameters only if they differ
+        from the current MAD-X instance.
         '''
         if madx == None:
             madx = self.madx
@@ -134,11 +138,11 @@ class optics:
         madx_beam_parameters = get_beam_parameters(madx=madx)
 
         if not hasattr(self, 'beam'):
-            if verbose:
+            if self.verbose:
                 print (f"Creating beam parameter namespace.")
             setattr(self, 'beam', beam())
         else:
-            if verbose:
+            if self.verbose:
                 print (f"Existing beam parameter namespace found.")
 
         for key in madx_beam_parameters:
@@ -147,7 +151,7 @@ class optics:
                 old_value = getattr(self.beam, key).value
                 if update_only_if_different and old_value == value:
                     continue
-                if verbose:
+                if self.verbose:
                     print ('Updating parameter {} ... OLD: {} NEW: {}'.format(key, old_value, value))
             bp = beam_parameter(key=key, value=value, description=madx_beam_parameters[key]['description'])
             setattr(self.beam, key, bp)
@@ -203,21 +207,24 @@ class optics:
         madx.ptc_end()
         return madx.table.ptc_twiss_table
 
-    def makethin(self, n_slices, style='simple', **kwargs):
+    def makethin(self, n_slices, style='simple', stdout=False, **kwargs):
         '''
-        MAD-X makethin commands. To prevent interfering with the original lattice we create a new MAD-X instance.
-        (internal MAD-X commands like 'extract' and 'use' are unreliable. E.g. 'use' of original lattice after 'makethin' on an 
-        extracted sequence does not work) .
+        MAD-X makethin commands. To prevent interfering with the original lattice, a new MAD-X instance
+        is created.
+        (internal MAD-X commands like 'extract' and 'use' are unreliable. E.g. 'use' of original lattice 
+        after 'makethin' on an extracted sequence does not work) .
         '''
-        print ('Creating separate MAD-X instance for makethin ...')
-        self.madx_thin = init_madx(lattice=self.lattice, show_init=False)
+        if self.verbose:
+            print ('Creating separate MAD-X instance for makethin ...')
+        self.madx_thin = init_madx(lattice=self.lattice, show_init=False, stdout=stdout)
         self.set_beam_parameters(madx=self.madx_thin)
         self.madx_thin.use(sequence=self.sequence_name)
         self.madx_thin.select(flag='makethin', clear=True)
         self.madx_thin.select(flag='makethin', thick=True, slice=n_slices)
         self.madx_thin.makethin(style=style, sequence=self.sequence_name, **kwargs)
         self.madx_thin.use(sequence=self.sequence_name)
-        print ('done.')
+        if self.verbose:
+            print ('done.')
 
     def get_one_turn_maps(self, twiss_table=None):
         '''
@@ -234,7 +241,7 @@ class optics:
             one_turn_maps[i, j, :] = getattr(twiss_table, f're{i + 1}{j + 1}')
         return one_turn_maps
 
-    def compute_optics_functions(self, n_slices=6, resolution=11, style='simple', verbose=True):
+    def compute_optics_functions(self, n_slices=6, resolution=11, style='simple', **kwargs):
         '''
         Compute the optics functions for a given lattice, using the MAD-X twiss functionality.
         
@@ -248,14 +255,14 @@ class optics:
         required, for example to determine the tune, then n_slices=41, resolution=201 turned
         out to be sufficient.
         '''
-        if verbose:
+        if self.verbose:
             print ('Computing optics functions with the following parameters:')
             print (f'  n_slices: {n_slices}')
             print (f'resolution: {resolution}')
 
-        self.makethin(n_slices=n_slices, style=style)
+        self.makethin(n_slices=n_slices, style=style, **kwargs)
 
-        if verbose:
+        if self.verbose:
             print ('Performing MAD-X twiss on thin lattice ...')
         self.thin_twiss = self.twiss(madx=self.madx_thin)
 
@@ -339,11 +346,11 @@ class optics:
         self.function = function
         self.function_parameters = {'n_slices': n_slices, 'resolution': resolution, 'style': style}
 
-        if verbose:
+        if self.verbose:
             if any(function['k1bends'] != 0):
                 warnings.warn('Combined-function elements in lattice.')
 
-    def get_natural_parameters(self, run_emit=False, verbose=True, **kwargs):
+    def get_natural_parameters(self, run_emit=False, **kwargs):
         '''
         Compute natural parameters of the given lattice.
 
@@ -419,7 +426,7 @@ class optics:
 
         # in order to get the energy acceptance and the synchrotron tune, we need to load the RF cavity parameters.
         # !!! TODO here we assume a *single* RF cavity
-        rf_parameters = self.get_rf_cavity_system(verbose=verbose)
+        rf_parameters = self.get_rf_cavity_system()
         n_cavities = len(rf_parameters['voltage'])
         rf_lag = np.mean(rf_parameters['phase_rad']) # TODO adjust for sophisticated RF system.
         voltage = sum(rf_parameters['voltage']) # TODO adjust for sophisticated RF system.
@@ -437,7 +444,7 @@ class optics:
                                                    voltage=voltage, slip_factor=slip_factor)
         momentum_acceptance = dee_to_dpp(energy_acceptance, beta0=beta0)
 
-        if verbose:
+        if self.verbose:
             print ()
             print (f'rf total voltage [MV] = {voltage/(1e6)}')
             print (f'rf cavity lag [rad] = {rf_lag}')
@@ -457,7 +464,7 @@ class optics:
         # n.b. synchrotron_tune = omega_s/omega_rev
         omega_s = synchrotron_tune*omega_rev
 
-        if verbose:
+        if self.verbose:
             print (f'               revolution time [s]: {t_rev}')
             print (f'        revolution frequency [1/s]: {f_rev}')
             print (f'revolution angular frequency [1/s]: {omega_rev}')
@@ -477,7 +484,7 @@ class optics:
         #pulse_length_ps_v2 = natural_z_v2/constants.speed_of_light*1e12 # the expected pulse length in ps
         #pulse_length_ps_v3 = natural_z_v3/constants.speed_of_light*1e12 # the expected pulse length in ps
 
-        if verbose:
+        if self.verbose:
             ttab = self.madx_thin.table.summ
 
             print ('\nSynchrotron integrals')
@@ -520,7 +527,7 @@ class optics:
          'nat_z': natural_z, 'pulse_length_rms_ps': pulse_length_ps, 'pulse_length_fwhm_ps': pulse_length_ps*2.355,
          'n_slices': self.function_parameters['n_slices'], 'resolution': self.function_parameters['resolution']}
 
-    def get_rf_cavity_system(self, twiss=None, verbose=True):
+    def get_rf_cavity_system(self, twiss=None):
         '''
         Obtain RF-cavity related quantities like energy acceptance and synchrotron tune.
 
@@ -529,7 +536,7 @@ class optics:
         where V is given in terms of MV.
         '''
         if twiss == None:
-            if verbose:
+            if self.verbose:
                 print ('get_rf_cavity_system: Performing MAD-X twiss on given lattice ...')
             twiss = self.twiss()
         indices_rfcavities = twiss.keyword == 'rfcavity'
@@ -550,7 +557,7 @@ class optics:
         energy0_SI = self.beam.energy.value*1e9*constants.e
         return beta0*np.sqrt(-charge*voltage/(np.pi*harmonic*slip_factor*energy0_SI)*G_phi)
 
-    def update_beam(self, natural_parameters: dict, update_ey=False, ey_scale=1, verbose=True):
+    def update_beam(self, natural_parameters: dict, update_ey=False, ey_scale=1):
         '''
         Update beam parameters using the results stored in the dictionary natural parameters.
 
@@ -574,24 +581,24 @@ class optics:
         old_sige_value = self.beam.sige.value
         self.beam.sige.value = natural_parameters['nat_dee']
 
-        if verbose:
+        if self.verbose:
             print ('\nUpdating beam parameters using natural values')
             print (f'ex: OLD: {old_ex_value}, NEW: {self.beam.ex.value}')
-            print (f'exn: OLD: {old_exn_value}, NEW: {self.beam.exn.value}')      
+            print (f'exn: OLD: {old_exn_value}, NEW: {self.beam.exn.value}')
             if update_ey:
                 print (f'ey: OLD: {old_ey_value}, NEW: {self.beam.ey.value}')
                 print (f'eyn: OLD: {old_eyn_value}, NEW: {self.beam.eyn.value}')
             print (f'sigt: OLD: {old_sigt_value}, NEW: {self.beam.sigt.value}')
             print (f'sige: OLD: {old_sige_value}, NEW: {self.beam.sige.value}')
 
-    def touschek_lifetime(self, precise=False, precision=16, verbose=True, **kwargs):
+    def touschek_lifetime(self, precise=False, precision=16, **kwargs):
         '''
         Compute the touschek lifetime for the given optics.
         '''
-        nat = self.get_natural_parameters(verbose=verbose, **kwargs)
-        self.update_beam(nat, verbose=verbose)
+        nat = self.get_natural_parameters(**kwargs)
+        self.update_beam(nat)
         return lifetime(optics=self, delta_pm=nat['momentum_acceptance'], 
-                        precise=precise, precision=precision, verbose=verbose)
+                        precise=precise, precision=precision, verbose=self.verbose)
 
     def plot_survey(self, **kwargs):
         plot_survey(madx=self.madx, **kwargs)

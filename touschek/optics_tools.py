@@ -13,10 +13,12 @@ from touschek.plotting import plot_survey, plot_touschek_losses
 from touschek.touschek import lifetime
 from touschek import dee_to_dpp
 
-def init_madx(lattice: str, show_init=True, **kwargs):
+def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
     '''
     Create cpymad instance with given lattice and beam parameters.
     '''
+    if verbose:
+        print ('loading lattice:\n{}'.format(lattice))
     m = Madx(**kwargs)
     if not show_init:
         m.option(echo=False, warn=False)
@@ -121,7 +123,7 @@ class optics:
         self.lattice = lattice
         self.sequence_name = sequence_name
         self.verbose = verbose
-        self.madx = init_madx(lattice=lattice, **kwargs)
+        self.madx = init_madx(lattice=lattice, verbose=verbose, **kwargs)
         self.madx.beam(**beam_params)
         self.get_beam_parameters(madx=self.madx)
 
@@ -348,7 +350,7 @@ class optics:
 
         if self.verbose:
             if any(function['k1bends'] != 0):
-                warnings.warn('Combined-function elements in lattice.')
+                warnings.warn('Combined-function elements found in the lattice.')
 
     def get_natural_parameters(self, run_emit=False, **kwargs):
         '''
@@ -388,7 +390,12 @@ class optics:
         si3 = sum(abs(rho_inv[1:])**3*ds)
 
         k1bends = self.function.k1bends.values  # the quadrupole gradient in the dipole fields
-        si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
+        #si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
+        ds_nonzero = ds > 0
+        Dx_1 = Dx[1:]
+        rho_inv_1 = rho_inv[1:]
+        k1bends_1 = k1bends[1:]
+        si4 = sum(Dx_1[ds_nonzero]*rho_inv_1[ds_nonzero]*(rho_inv_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_1[ds_nonzero])*ds[ds_nonzero])
 
         Hx = gammax*Dx**2 + 2*alphax*Dx*Dxp + betax*Dxp**2
         si5 = sum(Hx[1:]*abs(rho_inv[1:])**3*ds)
@@ -428,6 +435,8 @@ class optics:
         # !!! TODO here we assume a *single* RF cavity
         rf_parameters = self.get_rf_cavity_system()
         n_cavities = len(rf_parameters['voltage'])
+        if n_cavities == 0:
+            raise RuntimeError('No RF cavity found!')
         rf_lag = np.mean(rf_parameters['phase_rad']) # TODO adjust for sophisticated RF system.
         voltage = sum(rf_parameters['voltage']) # TODO adjust for sophisticated RF system.
         if np.sign(voltage) < 0:
@@ -498,8 +507,8 @@ class optics:
             print ('\nDerived quantities')
             print ('------------------')
             print (f'C-gamma [m (GeV)**(-3)]: {Cgamma*(1e9*constants.elementary_charge)**3}')
-            print ('Energy loss U0 per turn [eV]:')
-            print (f'{u0/constants.elementary_charge}, MAD-X: ')
+            print ('Energy loss U0 per turn [keV]:')
+            print (f'{u0/constants.elementary_charge*1e-3}, MAD-X: ')
             print (f'Momentum compaction factor: {momentum_compaction}')
             print (f'               Slip factor: {slip_factor}')
             print (f'Transition energy gamma_tr: {gamma_tr}')
@@ -601,7 +610,7 @@ class optics:
                         precise=precise, precision=precision, verbose=self.verbose)
 
     def plot_survey(self, **kwargs):
-        plot_survey(madx=self.madx, **kwargs)
+        return plot_survey(madx=self.madx, **kwargs)
 
     def plot_touschek_losses(self, touschek_results, **kwargs):
         plot_touschek_losses(optics=self, touschek_results=touschek_results, **kwargs)

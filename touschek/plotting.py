@@ -38,7 +38,14 @@ def make_survey_labels(x, y, keywords, thetas):
     return x_label, y_label, labels, thetas_new
 
 
-def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3):
+def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
+    '''
+    Plot survey of machine elements utilizing MAD-X survey command.
+    
+    INPUT
+    =====
+    aspect: If set to True, create plot with same aspect ratio in both directions.
+    '''
     surv = madx.survey()
 
     x = surv.x[kmin:kmax]
@@ -61,14 +68,21 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3):
         plt.text(xl[i], zl[i], text, rotation=angle, ha='center', va='center')
     plt.xlabel(r'$x$ [m]')
     plt.ylabel(r'$z$ [m]')
+    ax = plt.gca()
+    ax.set_aspect(1)
     return plt
 
-def plot_touschek_losses(optics, touschek_results, figsize=(16, 4)):
+def plot_touschek_losses(optics, touschek_results, xlim=[], figsize=(16, 4)):
 
     plt.figure(figsize=figsize)
     plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')
     pos = optics.function.position.values
-    values = touschek_results['touschek_const']*touschek_results['touschek_ring']
+    values = touschek_results['touschek_const']*touschek_results['touschek_ring']    
+    if len(xlim) > 0:
+        lim_indices = np.logical_and(pos >= xlim[0], pos <= xlim[-1])
+        pos = pos[lim_indices]
+        values = values[lim_indices]
+
     plt.plot(pos, values)
     plt.ylabel(r'$\frac{r_p^2 c N_p F(\tau_m, B_1, B_2)}{8 \pi \gamma^2 \tau_m \sigma_s \sqrt{\sigma_x^2 \sigma_y^2 - \delta^4 D_x^2 D_y^2}}$ [1/s]',
             fontsize=14)
@@ -77,6 +91,10 @@ def plot_touschek_losses(optics, touschek_results, figsize=(16, 4)):
     exclude_in_ticks = ['marker']
     keywords = optics.madx.table.twiss.keyword
     s = optics.madx.table.twiss.s
+    if len(xlim) > 0:
+        lim_indices2 = np.logical_and(s >= xlim[0], s <= xlim[-1])
+        s = s[lim_indices2]
+        keywords = keywords[lim_indices2]
     indices_oi = [k for k in range(len(keywords)) if keywords[k] not in exclude_in_ticks]
     plt.xticks(s[indices_oi], keywords[indices_oi], rotation=90)
     plt.twiny()

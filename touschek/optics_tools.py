@@ -276,16 +276,21 @@ class optics:
         drift_indices = np.array([k for k in range(len(keywords)) if keywords[k] in drift_elements and lengths[k] > 0])
         
         # also compute 1/rho
-        inv_radii = np.zeros(len(positions))
+        inv_radii_x = np.zeros(len(positions))
+        inv_radii_y = np.zeros(len(positions))
+
         non_zero_lengths = np.where(np.logical_and(lengths != 0, [keyword in ['sbend', 'rbend', 'dipedge'] for
         keyword in keywords]))[0]
-        inv_radii[non_zero_lengths] = self.thin_twiss.angle[non_zero_lengths]/lengths[non_zero_lengths]
+        inv_radii_x[non_zero_lengths] = self.thin_twiss.angle[non_zero_lengths]/lengths[non_zero_lengths]
+        inv_radii_y[non_zero_lengths] = self.thin_twiss.k0sl[non_zero_lengths]/lengths[non_zero_lengths] # n.b. the vertical angle in MAD-X may be hidden in rotations before and after bends
 
         # For the fourth synchrotron integral it is required (see Wolski, p. 225) to also use any normal-quad components
         # found inside bends (if they exist, as in combined-function magnets)
         # n.b. k1l in MAD-X twiss correspnds to 1/(B rho)*\partial B_y/\partial x, see Manual p. 75.
-        k1bends = np.zeros(len(positions))
-        k1bends[non_zero_lengths] = self.thin_twiss.k1l[non_zero_lengths]
+        k1bends_x = np.zeros(len(positions))
+        k1bends_x[non_zero_lengths] = self.thin_twiss.k1l[non_zero_lengths]
+        k1bends_y = np.zeros(len(positions))
+        k1bends_y[non_zero_lengths] = self.thin_twiss.k1sl[non_zero_lengths]
 
         additional_positions = []
         additional_betax, additional_betay = [], []
@@ -293,8 +298,10 @@ class optics:
         additional_gammax, additional_gammay = [], []
         additional_dx, additional_dpx = [], []
         additional_dy, additional_dpy = [], []
-        additional_inv_radii = []
-        additional_k1bends = []
+        additional_inv_radii_x = []
+        additional_inv_radii_y = []
+        additional_k1bends_x = []
+        additional_k1bends_y = []
 
         for k in drift_indices:
             n_points = int(resolution*lengths[k])
@@ -323,8 +330,10 @@ class optics:
             additional_dy.append(dy_func(base))
             additional_dpy.append(dpy_func(base))
             
-            additional_inv_radii.append(np.zeros(len(base)))
-            additional_k1bends.append(np.zeros(len(base)))
+            additional_inv_radii_x.append(np.zeros(len(base)))
+            additional_k1bends_x.append(np.zeros(len(base)))
+            additional_inv_radii_y.append(np.zeros(len(base)))
+            additional_k1bends_y.append(np.zeros(len(base)))
 
         new_positions = np.concatenate((positions, np.hstack(additional_positions)))
         sindices = np.argsort(new_positions)
@@ -343,13 +352,16 @@ class optics:
         function['ddispx'] = np.concatenate((self.thin_twiss.dpx, np.hstack(additional_dpx)))[sindices]
         function['dispy'] = np.concatenate((self.thin_twiss.dy, np.hstack(additional_dy)))[sindices]
         function['ddispy'] = np.concatenate((self.thin_twiss.dpy, np.hstack(additional_dpy)))[sindices]
-        function['inv_radius'] = np.concatenate((inv_radii, np.hstack(additional_inv_radii)))[sindices]
-        function['k1bends'] = np.concatenate((k1bends, np.hstack(additional_k1bends)))[sindices]
+        function['inv_radius_x'] = np.concatenate((inv_radii_x, np.hstack(additional_inv_radii_x)))[sindices]
+        function['k1bends_x'] = np.concatenate((k1bends_x, np.hstack(additional_k1bends_x)))[sindices]
+        function['inv_radius_y'] = np.concatenate((inv_radii_y, np.hstack(additional_inv_radii_y)))[sindices]
+        function['k1bends_y'] = np.concatenate((k1bends_y, np.hstack(additional_k1bends_y)))[sindices]
+
         self.function = function
         self.function_parameters = {'n_slices': n_slices, 'resolution': resolution, 'style': style}
 
         if self.verbose:
-            if any(function['k1bends'] != 0):
+            if any(function['k1bends_x'] != 0) or any(function['k1bends_y'] != 0):
                 warnings.warn('Combined-function elements found in the lattice.')
 
     def get_natural_parameters(self, run_emit=False, **kwargs):
@@ -372,35 +384,42 @@ class optics:
         ds = np.diff(s)
         gamma0 = self.beam.gamma.value
         beta0 = self.beam.beta.value
-        rho_inv = self.function.inv_radius.values
+        rho_inv_x = self.function.inv_radius_x.values
+        rho_inv_y = self.function.inv_radius_y.values
         energy = self.beam.energy.value*1e9*constants.elementary_charge # in SI units
 
         circumference = s[-1]
 
         # Compute the synchrotron integrals
         Dx = self.function.dispx.values
+        Dy = self.function.dispy.values
         Dxp = self.function.ddispx.values
         alphax = self.function.alphax.values
         betax = self.function.betax.values
         betay = self.function.betay.values
         gammax = self.function.gammax.values
 
-        si1 = sum(Dx[1:]*rho_inv[1:]*ds)
-        si2 = sum(rho_inv[1:]**2*ds)
-        si3 = sum(abs(rho_inv[1:])**3*ds)
+        si1 = sum(Dx[1:]*rho_inv_x[1:]*ds)
+        si2 = sum(rho_inv_x[1:]**2*ds)
+        si3 = sum(abs(rho_inv_x[1:])**3*ds)
 
-        k1bends = self.function.k1bends.values  # the quadrupole gradient in the dipole fields
+        k1bends_x = self.function.k1bends_x.values  # the quadrupole gradient in the dipole fields
+        k1bends_y = self.function.k1bends_y.values  # the quadrupole gradient in the dipole fields
         #si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
         # In MAD-X the quadrupole gradient in the bends needs to be divided by
         # the length ds. Therefore:
         ds_nonzero = ds > 0
         Dx_1 = Dx[1:]
-        rho_inv_1 = rho_inv[1:]
-        k1bends_1 = k1bends[1:]
-        si4 = sum(Dx_1[ds_nonzero]*rho_inv_1[ds_nonzero]*(rho_inv_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_1[ds_nonzero])*ds[ds_nonzero])
+        Dy_1 = Dy[1:]
+        rho_inv_x_1 = rho_inv_x[1:]
+        k1bends_x_1 = k1bends_x[1:]
+        rho_inv_y_1 = rho_inv_y[1:]
+        k1bends_y_1 = k1bends_y[1:]
+        si4 = sum(Dx_1[ds_nonzero]*rho_inv_x_1[ds_nonzero]*(rho_inv_x_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_x_1[ds_nonzero])*ds[ds_nonzero])
+        si4_y = sum(Dy_1[ds_nonzero]*rho_inv_y_1[ds_nonzero]*(rho_inv_y_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_y_1[ds_nonzero])*ds[ds_nonzero])
 
         Hx = gammax*Dx**2 + 2*alphax*Dx*Dxp + betax*Dxp**2
-        si5 = sum(Hx[1:]*abs(rho_inv[1:])**3*ds)
+        si5 = sum(Hx[1:]*abs(rho_inv_x[1:])**3*ds)
 
         # DERIVED QUANTITIES
         ####################
@@ -424,7 +443,7 @@ class optics:
         natural_emittance_x = Cq*gamma0**2*si5/si2/jx
 
         # lower limit of y-emittance, see Wolski p234 Eq. (7.85) (from Raubenheimer 1991)
-        natural_emittance_y_limit = 13/55*Cq/si2*sum(betay[1:]*np.abs(rho_inv[1:])**3*ds)
+        natural_emittance_y_limit = 13/55*Cq/si2*sum(betay[1:]*np.abs(rho_inv_x[1:])**3*ds)
 
         # nautral energy spread, see Wolski p.236 Eq. (7.94)
         jz = 2 + si4/si2
@@ -477,10 +496,14 @@ class optics:
 
         # DAMPING TIMES
         ###############
+        si2_y = si2
+        jy = 1 - si4_y/si2_y
 
-        t_damping_x = 2/jx*energy/u0*t_rev # Ref. [Wolski], Eq. (7.42), p. 225
-        t_damping_y = 2*energy/u0*t_rev # Ref. [Wolski], Eq. (7.13), p. 220. jy = 1
-        t_damping_z = 2/jz*energy/u0*t_rev
+        # Ref. [Wolski], Eq. (7.64), p. 229
+        t_damping_f = 2*energy/u0*t_rev
+        t_damping_x = t_damping_f/jx
+        t_damping_y = t_damping_f/jy
+        t_damping_z = t_damping_f/jz
 
         if self.verbose:
             print (f'               revolution time [s]: {t_rev}')
@@ -494,6 +517,7 @@ class optics:
             print (f'damping time x [s]: {t_damping_x}')
             print (f'damping time y [s]: {t_damping_y}')
             print (f'damping time z [s]: {t_damping_z}')
+            print ('Robinson damping theorem: 4 = jx + jy + jz: {}'.format(jx + jy + jz))
 
         # natural bunch length, see Wolski, p.237 Eq. (7.96)
         natural_z = circumference/(2*np.pi)*slip_factor/synchrotron_tune*natural_dpp
@@ -548,6 +572,7 @@ class optics:
          'energy_acceptance': energy_acceptance, 'momentum_acceptance': momentum_acceptance, 't_rev': t_rev, 'f_rev': f_rev, 'omega_rev': omega_rev,
          'omega_s': omega_s, 'synchrotron_tune': synchrotron_tune, 'synchrotron_turns': 1/synchrotron_tune,
          'nat_z': natural_z, 'pulse_length_rms_ps': pulse_length_ps, 'pulse_length_fwhm_ps': pulse_length_ps*2.355,
+         't_damping_x': t_damping_x, 't_damping_y': t_damping_y, 't_damping_z': t_damping_z,
          'n_slices': self.function_parameters['n_slices'], 'resolution': self.function_parameters['resolution']}
 
     def get_rf_cavity_system(self, twiss=None):

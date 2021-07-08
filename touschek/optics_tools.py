@@ -408,15 +408,14 @@ class optics:
         #si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
         # In MAD-X the quadrupole gradient in the bends needs to be divided by
         # the length ds. Therefore:
-        ds_nonzero = ds > 0
         Dx_1 = Dx[1:]
         Dy_1 = Dy[1:]
         rho_inv_x_1 = rho_inv_x[1:]
         k1bends_x_1 = k1bends_x[1:]
         rho_inv_y_1 = rho_inv_y[1:]
         k1bends_y_1 = k1bends_y[1:]
-        si4 = sum(Dx_1[ds_nonzero]*rho_inv_x_1[ds_nonzero]*(rho_inv_x_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_x_1[ds_nonzero])*ds[ds_nonzero])
-        si4_y = sum(Dy_1[ds_nonzero]*rho_inv_y_1[ds_nonzero]*(rho_inv_y_1[ds_nonzero]**2 + 1/ds[ds_nonzero]*2*k1bends_y_1[ds_nonzero])*ds[ds_nonzero])
+        si4 = sum(Dx_1*rho_inv_x_1*(rho_inv_x_1**2*ds + 2*k1bends_x_1))
+        si4_y = sum(Dy_1*rho_inv_y_1*(rho_inv_y_1**2*ds + 2*k1bends_y_1))
 
         Hx = gammax*Dx**2 + 2*alphax*Dx*Dxp + betax*Dxp**2
         si5 = sum(Hx[1:]*abs(rho_inv_x[1:])**3*ds)

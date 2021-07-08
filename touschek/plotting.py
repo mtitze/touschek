@@ -77,7 +77,7 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
 
     plt.figure(figsize=figsize)
     plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')
-    pos = optics.function.position.values
+    pos = touschek_results['s']
     values = touschek_results['touschek_const']*touschek_results['touschek_ring']    
     if len(xlim) > 0:
         lim_indices = np.logical_and(pos >= xlim[0], pos <= xlim[-1])
@@ -104,10 +104,13 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
 
     if with_beta:
         plt.twinx()
+        pos_ofunc = optics.function.position
         bxbyi = 1/(optics.function.betax*optics.function.betay)
         if len(xlim) > 0:
-            bxbyi = bxbyi[lim_indices]
-        plt.plot(pos, bxbyi, color='black', linestyle='--', label=r'$1/(\beta_x \beta_y)$')
+            lim_indices3 = np.logical_and(pos_ofunc >= xlim[0], pos_ofunc <= xlim[-1])
+            bxbyi = bxbyi[lim_indices3]
+            pos_ofunc = pos_ofunc[lim_indices3]
+        plt.plot(pos_ofunc, bxbyi, color='black', linestyle='--', label=r'$1/(\beta_x \beta_y)$')
         plt.ylabel(r'$1/(\beta_x \beta_y)$', fontsize=14)
         plt.legend()
 

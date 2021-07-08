@@ -72,7 +72,8 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
     ax.set_aspect(1)
     return plt
 
-def plot_touschek_losses(optics, touschek_results, xlim=[], figsize=(16, 4)):
+def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
+                         figsize=(16, 4)):
 
     plt.figure(figsize=figsize)
     plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')
@@ -83,7 +84,7 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], figsize=(16, 4)):
         pos = pos[lim_indices]
         values = values[lim_indices]
 
-    plt.plot(pos, values)
+    plt.plot(pos, values, label='losses')
     plt.ylabel(r'$\frac{r_p^2 c N_p F(\tau_m, B_1, B_2)}{8 \pi \gamma^2 \tau_m \sigma_s \sqrt{\sigma_x^2 \sigma_y^2 - \delta^4 D_x^2 D_y^2}}$ [1/s]',
             fontsize=14)
 
@@ -100,4 +101,14 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], figsize=(16, 4)):
     plt.twiny()
     plt.scatter([pos[0], pos[-1]], [values[-1], values[-1]], alpha=0)
     plt.xlabel(r'$s$ [m]', fontsize=14)
+
+    if with_beta:
+        plt.twinx()
+        bxbyi = 1/(optics.function.betax*optics.function.betay)
+        if len(xlim) > 0:
+            bxbyi = bxbyi[lim_indices]
+        plt.plot(pos, bxbyi, color='black', linestyle='--', label=r'$1/(\beta_x \beta_y)$')
+        plt.ylabel(r'$1/(\beta_x \beta_y)$', fontsize=14)
+        plt.legend()
+
     plt.show()

@@ -391,6 +391,8 @@ class optics:
 
         k1bends = self.function.k1bends.values  # the quadrupole gradient in the dipole fields
         #si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
+        # In MAD-X the quadrupole gradient in the bends needs to be divided by
+        # the length ds. Therefore:
         ds_nonzero = ds > 0
         Dx_1 = Dx[1:]
         rho_inv_1 = rho_inv[1:]
@@ -473,6 +475,13 @@ class optics:
         # n.b. synchrotron_tune = omega_s/omega_rev
         omega_s = synchrotron_tune*omega_rev
 
+        # DAMPING TIMES
+        ###############
+
+        t_damping_x = 2/jx*energy/u0*t_rev # Ref. [Wolski], Eq. (7.42), p. 225
+        t_damping_y = 2*energy/u0*t_rev # Ref. [Wolski], Eq. (7.13), p. 220. jy = 1
+        t_damping_z = 2/jz*energy/u0*t_rev
+
         if self.verbose:
             print (f'               revolution time [s]: {t_rev}')
             print (f'        revolution frequency [1/s]: {f_rev}')
@@ -480,6 +489,11 @@ class optics:
             print (f'omega_s = {omega_s} (synchrotron angular frequency)')
             print (f'  |nu_s| = {synchrotron_tune} (synchrotron tune)')
             print (f' # turns = {1/synchrotron_tune} (synchrotron oscillation period)')
+
+            print ('Synchrotron damping times:')
+            print (f'damping time x [s]: {t_damping_x}')
+            print (f'damping time y [s]: {t_damping_y}')
+            print (f'damping time z [s]: {t_damping_z}')
 
         # natural bunch length, see Wolski, p.237 Eq. (7.96)
         natural_z = circumference/(2*np.pi)*slip_factor/synchrotron_tune*natural_dpp

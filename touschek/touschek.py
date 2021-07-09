@@ -122,12 +122,14 @@ def prepare_touschek(optics, delta_pm, verbose=True):
             'position': position}
 
 
-def lifetime(precise=False, precision=16, verbose=True, **kwargs):
+def lifetime(precise=False, precision=16, verbose=True, symmetry=1, **kwargs):
     '''
     Compute the Touschek lifetime.
 
     precise: If True, use arbitrary number precision to deal with the integrand.
     precision: If precise==True, then this will denote the number of digits to be considered.
+    symmetry: If the machine admits a symmetry, one can attempt to speed up the calculation process
+    by calculating only the first 1/symmetry-th of the whole machine.
     '''
 
     params = prepare_touschek(verbose=verbose, **kwargs)
@@ -136,10 +138,21 @@ def lifetime(precise=False, precision=16, verbose=True, **kwargs):
     B2 = params['B2']
     touschek_const = params['const']
     kappa_m = params['kappa_m']
+    position = params['position']
 
     if verbose and precise:
         print ('\n*** Arbitrary number precision mode ***')
         print (f'Precision: {precision}')
+
+
+    if symmetry > 1:
+        # use only the first part of the symmetric machine
+        circumference = position[-1]
+        indices = position <= circumference/symmetry
+        B1 = B1[indices]
+        B2 = B2[indices]
+        touschek_const = touschek_const[indices]
+        position = position[indices]
 
     print (flush=True) # clean line before showing progress bar
 
@@ -162,16 +175,25 @@ def lifetime(precise=False, precision=16, verbose=True, **kwargs):
             touschek_ring.append(float(mp.quad(integrand_mp, [km, mp.pi/2])))
     bar.finish()
 
-    position = params['position']
     ds = np.diff(position)
     touschek_ring = np.array(touschek_ring)
+    # n.b. the average will be sufficient also for just a part of a symmetric machine:
     touschek_lifetime_i = sum(touschek_const[1:]*touschek_ring[1:]*ds)/sum(ds)
+
+    if symmetry > 1:
+        # combine the result back to the whole machine
+        B1 = np.array(list(B1)*symmetry)
+        B2 = np.array(list(B2)*symmetry)
+        touschek_ring = np.array(list(touschek_ring)*symmetry)
+        touschek_const = np.array(list(touschek_const)*symmetry)
+        position = np.hstack([position + k for k in np.arange(0, circumference, position[-1])[:-1]])
+
     lifetime = 1/touschek_lifetime_i
 
     if verbose:
         print (f'Touschek lifetime [s]: {lifetime:.3f}')
         print (f'                  [h]: {lifetime/60/60:.3f}')
 
-    return {'lifetime': lifetime, 'touschek_ring': touschek_ring, 
+    return {'lifetime': lifetime, 'touschek_ring': touschek_ring, 'symmetry': symmetry,
     'B1': B1, 'B2': B2, 's': position, 'touschek_const': touschek_const, 'kappa_m': kappa_m}
     

@@ -405,17 +405,10 @@ class optics:
 
         k1bends_x = self.function.k1bends_x.values  # the quadrupole gradient in the dipole fields
         k1bends_y = self.function.k1bends_y.values  # the quadrupole gradient in the dipole fields
-        #si4 = sum(Dx[1:]*rho_inv[1:]*(rho_inv[1:]**2 + 2*k1bends[1:])*ds)
         # In MAD-X the quadrupole gradient in the bends needs to be divided by
-        # the length ds. Therefore:
-        Dx_1 = Dx[1:]
-        Dy_1 = Dy[1:]
-        rho_inv_x_1 = rho_inv_x[1:]
-        k1bends_x_1 = k1bends_x[1:]
-        rho_inv_y_1 = rho_inv_y[1:]
-        k1bends_y_1 = k1bends_y[1:]
-        si4 = sum(Dx_1*rho_inv_x_1*(rho_inv_x_1**2*ds + 2*k1bends_x_1))
-        si4_y = sum(Dy_1*rho_inv_y_1*(rho_inv_y_1**2*ds + 2*k1bends_y_1))
+        # the length ds. Therefore ds canceled for these terms.
+        si4 = sum(Dx[1:]*rho_inv_x[1:]*(rho_inv_x[1:]**2*ds + 2*k1bends_x[1:]))
+        si4_y = sum(Dy[1:]*rho_inv_y[1:]*(rho_inv_y[1:]**2*ds + 2*k1bends_y[1:]))
 
         Hx = gammax*Dx**2 + 2*alphax*Dx*Dxp + betax*Dxp**2
         si5 = sum(Hx[1:]*abs(rho_inv_x[1:])**3*ds)
@@ -446,7 +439,7 @@ class optics:
 
         # nautral energy spread, see Wolski p.236 Eq. (7.94)
         jz = 2 + si4/si2
-        natural_dee = gamma0*np.sqrt(Cq*si3/si2/jz) # ! = deltaE/E_0 see wiedemann p. 302,
+        natural_dee = gamma0*np.sqrt(Cq*si3/si2/jz) # ! = deltaE/E_0 see Wiedemann p. 302,
         # and Wolski: E/(p0*c) - 1/beta0 = (E - E0)/(p0*c) = \Delta E/E0*beta0 with E0 = p0*c/beta0
         # therefore:
         natural_dpp = dee_to_dpp(natural_dee, beta0=beta0)

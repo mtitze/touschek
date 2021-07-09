@@ -482,7 +482,8 @@ class optics:
 
         synchrotron_tune = np.sqrt(-harmonic*slip_factor*constants.e*voltage*np.cos(rf_lag)/\
         (2*np.pi*beta0**2*energy)) # synchrotron angular frequency; "-" sign because Wiedemann defines the slip
-        # factor with a negative sign in comparison to our definition. TODO adjust for sophisticated RF system.
+        # factor with a negative sign in comparison to our definition. TODO adjust for sophisticated RF system;
+        # the synchrotron tune will be determined by the one-turn map in the future.
         # n.b. synchrotron_tune = omega_s/omega_rev
         omega_s = synchrotron_tune*omega_rev
 
@@ -597,13 +598,13 @@ class optics:
         energy0_SI = self.beam.energy.value*1e9*constants.e
         return beta0*np.sqrt(-charge*voltage/(np.pi*harmonic*slip_factor*energy0_SI)*G_phi)
 
-    def update_beam(self, natural_parameters: dict, update_ey=False, ey_scale=1):
+    def update_beam(self, natural_parameters: dict, update_ey=True, coupling_y=0):
         '''
         Update beam parameters using the results stored in the dictionary natural parameters.
 
-        update_ey: If True, then also set the y-emittance according to the theoretical lower limit.
-        ey_scale: (default 1) scaling factor for the lower bound of the natural y-emittance. Only in effect
-        if update_ey == True.
+        update_ey: If True, then also update y-emittance.
+        coupling_y: Only in effect if update_ey==True. If 0 (default), set ey emittance to theoretical lower limit.
+        If this value is > 0, set ey emittance to coupling_y*ex.
         '''
         old_ex_value = self.beam.ex.value
         self.beam.ex.value = natural_parameters['nat_ex']
@@ -612,8 +613,12 @@ class optics:
 
         if update_ey:
             old_ey_value = self.beam.ey.value
-            self.beam.ey.value = natural_parameters['nat_ey_lb']*ey_scale
-            old_eyn_value = self.beam_eyn.value
+            if coupling_y == 0:
+                self.beam.ey.value = natural_parameters['nat_ey_lb']
+            else:
+                self.beam.ey.value = coupling_y*self.beam.ex.value
+
+            old_eyn_value = self.beam.eyn.value
             self.beam.eyn.value = self.beam.ey.value*self.beam.gamma.value
 
         old_sigt_value = self.beam.sigt.value
@@ -631,7 +636,7 @@ class optics:
             print (f'sigt: OLD: {old_sigt_value}, NEW: {self.beam.sigt.value}')
             print (f'sige: OLD: {old_sige_value}, NEW: {self.beam.sige.value}')
 
-    def touschek_lifetime(self, precise=False, precision=16, symmetry=1, **kwargs):
+    def touschek_lifetime(self, precise=False, precision=16, symmetry=1, update_ey=True, coupling_y=0, **kwargs):
         '''
         Compute the touschek lifetime for the given optics.
 
@@ -639,7 +644,7 @@ class optics:
         see touschek.touschek.lifetime
         '''
         nat = self.get_natural_parameters(**kwargs)
-        self.update_beam(nat)
+        self.update_beam(nat, update_ey=update_ey, coupling_y=coupling_y)
         return lifetime(optics=self, delta_pm=nat['momentum_acceptance'], 
                         precise=precise, precision=precision, symmetry=symmetry, verbose=self.verbose)
 

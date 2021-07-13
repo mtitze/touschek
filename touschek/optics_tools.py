@@ -636,7 +636,7 @@ class optics:
             print (f'sigt: OLD: {old_sigt_value}, NEW: {self.beam.sigt.value}')
             print (f'sige: OLD: {old_sige_value}, NEW: {self.beam.sige.value}')
 
-    def touschek_lifetime(self, precise=False, precision=16, symmetry=1, update_ey=True, coupling_y=0, **kwargs):
+    def touschek_lifetime(self, precise=False, precision=16, symmetry=1, update_ey=False, coupling_y=0, **kwargs):
         '''
         Compute the touschek lifetime for the given optics.
 

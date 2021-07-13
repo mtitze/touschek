@@ -11,4 +11,4 @@ def dpp_to_dee(dpp, beta0):
     '''
     Convert dp/p to dE/E in the absence of an electric potential.
     '''
-    return np.sqrt((dpp + 1)**2 + beta0**2 - 1)*beta0 - 1
+    return np.sqrt((dpp + 1)**2 + 1/beta0**2 - 1)*beta0 - 1

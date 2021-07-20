@@ -243,7 +243,7 @@ class optics:
             one_turn_maps[i, j, :] = getattr(twiss_table, f're{i + 1}{j + 1}')
         return one_turn_maps
 
-    def compute_optics_functions(self, n_slices=6, resolution=11, style='simple', **kwargs):
+    def compute_optics_functions(self, n_slices=11, resolution=6, style='simple', **kwargs):
         '''
         Compute the optics functions for a given lattice, using the MAD-X twiss functionality.
         
@@ -253,7 +253,7 @@ class optics:
         resolution: number of points/m for drift sections.
 
         Recommendation:
-        For quick tests, n_slices=6, resolution=11 should be fine. If more precision is
+        For quick tests, n_slices=11, resolution=6 should be fine. If more precision is
         required, for example to determine the tune, then n_slices=41, resolution=201 turned
         out to be sufficient.
         '''

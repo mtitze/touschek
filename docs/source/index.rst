@@ -1,9 +1,9 @@
-.. touschek documentation master file, created by
-   sphinx-quickstart on Tue Jul 20 14:38:06 2021.
+.. Touschek documentation master file, created by
+   sphinx-quickstart on Mon Jul 26 12:43:27 2021.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to touschek's documentation!
+Welcome to Touschek's documentation!
 ====================================
 
 .. toctree::

@@ -17,7 +17,7 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'Touschek lifetime'
+project = 'Touschek'
 copyright = '2021, Malte Titze'
 author = 'Malte Titze'
 

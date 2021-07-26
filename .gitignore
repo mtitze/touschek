@@ -17,3 +17,8 @@ poetry.lock
 
 normal.py
 mertens*
+
+# documentation output
+docs/build/*
+docs/make.bat
+docs/Makefile

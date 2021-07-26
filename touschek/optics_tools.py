@@ -1,4 +1,3 @@
-#from typing import Sequence
 from os import sync
 from cpymad.madx import Madx # BaseTypeMap
 import numpy as np
@@ -7,7 +6,6 @@ from scipy import constants
 import itertools
 
 import warnings
-import touschek
 
 from touschek.plotting import plot_survey, plot_touschek_losses
 from touschek.touschek import lifetime
@@ -468,6 +466,7 @@ class optics:
 
         if self.verbose:
             print ()
+            print (f'Relativistic gamma: {gamma0}')
             print (f'rf total voltage [MV] = {voltage/(1e6)}')
             print (f'rf cavity lag [rad] = {rf_lag}')
             print (f'phi[rad] = {phi}')

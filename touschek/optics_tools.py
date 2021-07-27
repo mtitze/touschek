@@ -14,6 +14,12 @@ from touschek import dee_to_dpp
 def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
     '''
     Create cpymad instance with given lattice and beam parameters.
+
+    :param lattice: Filename of the MAD-X lattice
+    :param show_init: If True, then show the MAD-X initialization (default: False)
+    :param verbose: verbose mode
+
+    :returns: cpymad instance of the given lattice.
     '''
     if verbose:
         print ('loading lattice:\n{}'.format(lattice))

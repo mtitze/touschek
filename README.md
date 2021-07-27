@@ -14,3 +14,7 @@ pip install -U git+https://github.com/mtitze/touschek.git
 from touschek import touschek
 touschek()
 ```
+
+## Further reading
+
+https://touschek.readthedocs.io/en/latest/

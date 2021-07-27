@@ -1,4 +1,4 @@
-# Touschek lifetime calculator
+# Quickstart
 
 ## Installation
 

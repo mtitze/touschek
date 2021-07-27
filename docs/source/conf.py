@@ -4,12 +4,6 @@
 # list see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-# Added by me:
-# see also instructions in
-# https://github.com/iamishalkin/cyrtd
-# and
-# https://docs.readthedocs.io/en/stable/intro/getting-started-with-sphinx.html
-
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -40,13 +34,13 @@ release = __version__
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.napoleon',
+    'sphinx.ext.coverage',
     'sphinx.ext.intersphinx',
     'myst_parser'
 ]
 
 # point to main .rst file
 master_doc = 'index'
-
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

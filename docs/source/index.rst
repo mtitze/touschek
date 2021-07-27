@@ -1,14 +1,8 @@
-.. Touschek documentation master file, created by
-   sphinx-quickstart on Mon Jul 26 12:43:27 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to Touschek's documentation!
 ====================================
 
 Touschek is a lightweight script to calcluate the Touschek-lifetime of a given
-accelerator lattice, based on Piwinski's 1998 paper "THE TOUSCHEK EFFECT
-IN STRONG FOCUSING STORAGE RINGS", DESY 98-179.
+accelerator lattice, based on Piwinski's 1998 paper [1]_ and `cpymad <https://github.com/hibtc/cpymad>`_.
 
 .. toctree::
    :maxdepth: 2
@@ -16,6 +10,8 @@ IN STRONG FOCUSING STORAGE RINGS", DESY 98-179.
 
    README.md
 
+   optics_tools.rst
+   touschek.rst
 
 
 Indices and tables
@@ -24,3 +20,7 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
+.. rubric:: Footnotes
+
+.. [1] A. Piwinski: "THE TOUSCHEK EFFECT IN STRONG FOCUSING STORAGE RINGS", DESY 98-179 (1998).

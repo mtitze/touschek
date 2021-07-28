@@ -29,4 +29,4 @@ touschek_results = opt.touschek_lifetime(precise=False, symmetry=8, coupling_y=0
 
 ## Further reading
 
-https://touschek.readthedocs.io/en/latest/
+https://touschek.readthedocs.io/en/latest/index.html

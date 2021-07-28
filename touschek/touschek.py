@@ -9,6 +9,11 @@ import mpmath as mp
 
 from touschek import dee_to_dpp
 
+'''
+References:
+[1] A. Piwinski: "THE TOUSCHEK EFFECT IN STRONG FOCUSING STORAGE RINGS", DESY 98-179 (1998).
+'''
+
 if __name__ == "__main__":
     from _version import __version__
     description = 'Touschek liftime calculator', 
@@ -20,21 +25,39 @@ if __name__ == "__main__":
     lattice_filename = parser_namespace.latticefile
     # need to initiate optics class here
 
-def F_integrand(kappa, kappa_m, b1, b2):
+def F_integrand(kappa, kappa_m, b1, b2, kappatol=1e-5, exptol=500):
     '''
+    The integrand F in Piwinski's paper [1], Eq. (42)f. This routine is using tolerances in trying to avoid
+    NaNs caused e.g. by large internal exponents and may be inaccurate in some circumstances. For counter-check, 
+    please use `F_integrand_mp`.
+
     Note that kappa must be smaller than pi/2. The limits are:
     F_integrand(kappa = np.inf) = 0 and 
     F_integrand(kappa = 0) = -np.inf
+
+    Parameters
+    ----------
+    kappa: float
+        The kappa parameter in [1].
+    kappa_m: float
+        The lower bound of the kappa parameter in [1].
+    b1: float
+        B1 value in [1].
+    b2: float
+        B2 value in [1].
+    kappatol: float, optional
+        Tolerance below pi/2 in computing tau = tan(kappa).
+    exptol: float, optional
+        Tolerance to set exp(-b1*tau)*J0(b2*tau) to zero if b1*tau and b2*tau are both larger than exptol.
     '''
-    tol = 1e-5
-    if kappa > np.pi/2 - tol:
+    if kappa > np.pi/2 - kappatol:
         # prevent infinity at np.pi/2
         return 0
     tau = np.tan(kappa)**2
     tau_m = np.tan(kappa_m)**2
     term1 = ((2 + tau)**2*(tau/tau_m/(1 + tau) - 1)/tau + tau - \
         np.sqrt(tau*tau_m*(1 + tau)) - (2 + 1/2/tau)*np.log(tau/tau_m/(1 + tau)))*np.sqrt(1 + tau)
-    if b1*tau > 500 and b2*tau > 500:
+    if b1*tau > exptol and b2*tau > exptol:
         # prevent inf if inserting too large values in the Bessel function or the exponent.
         return 0
     term2 = term1*np.exp(-b1*tau)
@@ -45,11 +68,10 @@ def F_integrand(kappa, kappa_m, b1, b2):
 
 def F_integrand_mp(kappa, kappa_m, b1, b2):
     '''
-    mpmath-version of the Touschek integrand for arbitrary number precision.
+    mpmath-version of the routine `F_integrand`, now using arbitrary number precision. This routine should 
+    be more accurate but will in general be slower than `F_integrand`.
 
-    Note that kappa must be smaller than pi/2. The limits are:
-    F_integrand(kappa = np.inf) = 0 and 
-    F_integrand(kappa = 0) = -np.inf
+    For further documentation see `F_integrand` routine.
     '''
     tau = mp.tan(kappa)**2
     tau_m = mp.tan(kappa_m)**2
@@ -58,7 +80,22 @@ def F_integrand_mp(kappa, kappa_m, b1, b2):
 
 def prepare_touschek(optics, delta_pm, verbose=True):
     '''
-    Compute the necessary parameters for Touschek-lifetime calculation.
+    Compute necessary parameters for Touschek-lifetime calculation formula (42)f in Ref. [1].
+
+    Parameters
+    ----------
+    optics: :obj: optics
+        Optics class containing the lattice and utilities.
+    delta_pm: float
+        delta_pm parameter in [1], representing the momentum acceptance of the ring.
+    verbose: bool, optional
+        Verbose mode.
+
+    Returns
+    -------
+    dict
+        Dictionary containing the values B1, B2 as well as the constant in front of the Touschek-lifetime
+        equation, kappa_m and the position.
     '''
     gamma0 = optics.beam.gamma.value
     beta0 = optics.beam.beta.value
@@ -124,12 +161,21 @@ def prepare_touschek(optics, delta_pm, verbose=True):
 
 def lifetime(precise=False, precision=16, verbose=True, symmetry=1, **kwargs):
     '''
-    Compute the Touschek lifetime.
+    Compute the Touschek lifetime according to Eq. (42)f, Ref [1].
 
-    precise: If True, use arbitrary number precision to deal with the integrand.
-    precision: If precise==True, then this will denote the number of digits to be considered.
-    symmetry: If the machine admits a symmetry, one can attempt to speed up the calculation process
-    by calculating only the first 1/symmetry-th of the whole machine.
+    Parameters
+    ----------
+    precise: bool, optional 
+        If True, use arbitrary number precision.
+    precision: int, optional 
+        If precise==True, then this will define the number of digits to be considered.
+    symmetry: int, optional
+        If the machine admits a known symmetry, one can speed up the calculation process
+        by calculating only the first 1/symmetry-th part of the whole machine.
+    verbose: bool, optional
+        Verbose mode.
+    **kwargs
+        Optional arguments given to `prepare_touschek`.
     '''
 
     params = prepare_touschek(verbose=verbose, **kwargs)

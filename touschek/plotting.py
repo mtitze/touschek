@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def make_survey_labels(x, y, keywords, thetas):
+def _make_survey_labels(x, y, keywords, thetas):
+    # Helper function for the survey plot.
     no_drift = np.where(np.logical_and(keywords != 'drift', keywords != 'marker')) # do not label drifts
     x = x[no_drift]
     y = y[no_drift]
@@ -42,9 +43,18 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
     '''
     Plot survey of machine elements utilizing MAD-X survey command.
     
-    INPUT
-    =====
-    aspect: If set to True, create plot with same aspect ratio in both directions.
+    Parameters
+    ----------
+    kmin: int, optional
+        Start index of the survey elements to be plotted.
+    kmax: int, optional
+        End index of the survey elements to be plotted.
+    figsize: tuple, optional
+        The size of the figure.
+    s: int, optional
+        Dotsize of label points.
+    aspect: bool, optional 
+        If True, create plot having the same aspect ratio in both directions.
     '''
     surv = madx.survey()
 
@@ -53,7 +63,7 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
     labels = surv.keyword[kmin:kmax]
     thetas = surv.theta[kmin:kmax]
 
-    xl, zl, labelsl, thetasl = make_survey_labels(x, z, labels, thetas)
+    xl, zl, labelsl, thetasl = _make_survey_labels(x, z, labels, thetas)
 
     plt.figure(figsize=figsize)
     plt.scatter(x, z, s=s)
@@ -69,11 +79,28 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
     plt.xlabel(r'$x$ [m]')
     plt.ylabel(r'$z$ [m]')
     ax = plt.gca()
-    ax.set_aspect(1)
+    if aspect:
+        ax.set_aspect(1)
     return plt
 
 def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
                          figsize=(16, 4)):
+    '''
+    Plot the losses due to Touschek-scattering along the machine.
+
+    Parameters
+    ----------
+    optics: :obj: optics
+        An instance of optics class.
+    touschek_results: dict
+        The output of `touschek.lifetime`.
+    xlim: list, optional
+        Tuple [x0, x1] to display the results only from x0 to x1.
+    with_beta: bool, optional
+        If True, also show 1/(betax*betay) as indication of the locations with largest losses.
+    figsize: tuple, optional
+        The size of the figure.
+    '''
 
     plt.figure(figsize=figsize)
     plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')

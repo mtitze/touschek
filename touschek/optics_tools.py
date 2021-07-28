@@ -1,5 +1,5 @@
 from os import sync
-from cpymad.madx import Madx # BaseTypeMap
+from cpymad.madx import Madx
 import numpy as np
 import pandas as pd
 from scipy import constants
@@ -15,11 +15,21 @@ def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
     '''
     Create cpymad instance with given lattice and beam parameters.
 
-    :param lattice: Filename of the MAD-X lattice
-    :param show_init: Show the MAD-X initialization (default: False)
-    :param verbose: verbose mode
+    Parameters
+    ----------
+    lattice
+        Filename of the MAD-X lattice.
+    show_init : bool, optional
+        Show the MAD-X initialization (default: False).
+    verbose : bool, optional
+        Verbose mode.
+    **kwargs
+        Additional arguments passed to Madx instance.
 
-    :returns: cpymad instance of the given lattice.
+    Returns
+    -------
+    : obj : cpymad.madx
+        cpymad instance of the given lattice.
     '''
     if verbose:
         print ('loading lattice:\n{}'.format(lattice))
@@ -33,6 +43,16 @@ def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
 def get_beam_parameters(madx):
     '''
     Get current madx beam parameters.
+
+    Parameters
+    ----------
+    madx
+        MAD-X cpymad instance.
+
+    Returns
+    -------
+    dict
+        Dictionary of MAD-X beam parameters found inside the given cpymad instance.
     '''
     #Obtain beam parameters bye defining global variables in order 
     #to be able to load them from the madx instance.
@@ -72,7 +92,20 @@ def get_beam_parameters(madx):
 def beta_drift(s, alpha, gamma):
     '''
     Compute the beta-function of a drift if alpha and gamma are known at position s.
-    Also return s_star and gamma_star.
+
+    Parameters
+    ----------
+    s : float
+        Longitudinal position.
+    alpha : float
+        Lattice alpha parameter at position s.
+    gamma : float
+        Lattice gamma parameter at position s.
+
+    Returns
+    -------
+    obj
+        Lattice beta-function of drift, s^\* and beta^\*.
     '''
     beta_star = 1/gamma
     s_star = s + beta_star*alpha
@@ -80,11 +113,39 @@ def beta_drift(s, alpha, gamma):
 
 def dispersion_drift(s, disp, ddisp):
     '''
-    Return the dispersion function and d(dispersion)/ds-function of a drift.
+    Compute the dispersion function D and dD/ds of a drift.
+
+    Parameters
+    ----------
+    s : float
+        Longitudinal position.
+    disp : float
+        Dispersion D at position s.
+    ddisp : float
+        dD/ds at position s.
+
+    Returns
+    -------
+    obj
+        Dispersion function of drift.
     '''
     return lambda x: ddisp*(x - s) + disp, lambda x: ddisp*np.ones(len(x))
 
 def test_tune(optics):
+    '''
+    Compute the tunes Qx and Qy of the given lattice, based on the beta-functions,
+    and compare the results with those from the MAD-X thin-lens twiss table.
+
+    Since the tune is sensitive against the beta-function values, this function
+    can be used to test if the number of intermediate steps for a given
+    lattice resolution is sufficient.
+
+    Parameters
+    ----------
+    optics: :class: 'optics'
+        An instance of optics class.
+    '''
+
     print ('TUNE TEST')
     print ('---------')
     q1 = optics.thin_twiss.summary.q1
@@ -109,7 +170,7 @@ from dataclasses import dataclass
 @dataclass
 class beam_parameter:
     '''
-    Generic class to hold a beam parameter value
+    Generic class to hold a specific beam parameter value.
     '''
     key: str
     value: float 
@@ -117,12 +178,17 @@ class beam_parameter:
 
 class beam:
     '''
-    Namespace to hold the beam parameters
+    Namespace to hold beam parameters.
     '''
     def __init__(self, description=''):
         self.description = description
 
 class optics:
+    '''
+    Class to group frequently used cpymad operations on a MAD-X lattice for
+    convenient use.
+    '''
+    
     def __init__(self, lattice: str, beam_params: dict, sequence_name='ring', verbose=True, **kwargs):
         self.lattice = lattice
         self.sequence_name = sequence_name
@@ -133,10 +199,14 @@ class optics:
 
     def get_beam_parameters(self, madx=None, update_only_if_different=True):
         '''
-        Get beam parameters from given MAD-X instance.
+        Extract beam parameters from given MAD-X instance and update to local beam parameter namespace.
 
-        update_only_if_different: If True, then update existing beam parameters only if they differ
-        from the current MAD-X instance.
+        Parameters
+        ----------
+        madx : cpymad.madx, optional
+            cpymad MAD-X instance. If nothing specified, `self.madx` will be used.
+        update_only_if_different : bool, optional
+            Update existing beam parameters only if they differ from the current MAD-X instance.
         '''
         if madx == None:
             madx = self.madx
@@ -164,7 +234,12 @@ class optics:
 
     def set_beam_parameters(self, madx=None):
         '''
-        Set beam parameters to given MAD-X instance.
+        Set `self.beam` parameters to given MAD-X instance.
+
+        Parameters
+        ----------
+        madx : cpymad.madx, optional
+            cpymad MAD-X instance. If nothing specified, `self.madx` will be used.
         '''
         if madx == None:
             madx = self.madx
@@ -182,6 +257,21 @@ class optics:
     def twiss(self, madx=None, centre=True, ripken=True, chrom=True, rmatrix=True, **kwargs):
         '''
         Invoke MAD-X twiss with standard parameters of our interest.
+
+        Parameters
+        ----------
+        madx : cpymad.madx, optional
+            cpymad MAD-X instance. If nothing specified, `self.madx` will be used.
+        centre : bool, optional
+            given to `madx.twiss`.
+        ripken : bool, optional
+            given to `madx.twiss`.
+        chrom : bool, optional
+            given to `madx.twiss`.
+        rmatrix : bool, optional
+            given to `madx.twiss`.
+        **kwargs : optional
+            Further arguments given to `madx.twiss`. 
         '''
         if madx == None:
             madx = self.madx
@@ -193,9 +283,40 @@ class optics:
                   icase=6, no=2, deltap=0.0, closed_orbit=True,
                   deltap_dependency=True, ring_parameters=True, maptable=True):
         '''
-        Invoke MAD-X PTC_TWISS with standard parameters of our interest.
+        Invoke MAD-X PTC_TWISS with standard parameters of our interest. For details to the various options
+        see the MAD-X user manual.
 
-        Note that chromaticities are computed only for icase = 5.
+        After this operation, the PTC twiss tables can be found in `self.madx.table.ptc_twiss_summary` and
+        `self.madx.table.ptc_twiss_table`.
+        
+        Parameters
+        ----------
+        madx : cpymad.madx, optional
+            cpymad MAD-X instance. If nothing specified, `self.madx` will be used.
+        time: bool, optional
+            given to `madx.ptc_create_layout`.
+        model: int, optional
+            given to `madx.ptc_create_layout`.
+        method: int, optional 
+            given to `madx.ptc_create_layout`.
+        nst: int, optional
+            given to `madx.ptc_create_layout`.
+        exact: bool, optional
+            given to `madx.ptc_create_layout`.
+        icase: int, optional
+            given to `madx.ptc_twiss`. Note that chromaticities are computed only for icase = 5.
+        no: int, optional
+            given to `madx.ptc_twiss`.
+        deltap: float, optional
+            given to `madx.ptc_twiss`.
+        closed_orbit: bool, optional
+            given to `madx.ptc_twiss`.
+        deltap_dependency: bool, optional
+            given to `madx.ptc_twiss`.
+        ring_parameters: bool, optional
+            given to `madx.ptc_twiss`.
+        maptable: bool, optional
+            given to `madx.ptc_twiss`.
         '''
 
         if madx == None:
@@ -215,11 +336,22 @@ class optics:
 
     def makethin(self, n_slices, style='simple', stdout=False, **kwargs):
         '''
-        MAD-X makethin commands. To prevent interfering with the original lattice, a new MAD-X instance
-        is created.
-        (internal MAD-X commands like 'extract' and 'use' are unreliable. E.g. 'use' of original lattice 
-        after 'makethin' on an extracted sequence does not work) .
+        MAD-X makethin commands. To prevent interfering with the original lattice, a new MAD-X instance 
+        `self.madx_thin` will be created. For details regarding the options see the MAD-X user manual. 
+
+        Parameters
+        ----------
+        n_slices: int
+            Numer of slices for MAD-X makethin.
+        style: str, optional
+            MAD-X thin-lens slicing style. Accepted values are 'simple', 'teapot', 'collim' and 'hybrid'.
+        stdout: bool, optional
+            See `init_madx` routine.
+        **kwargs 
+            Optional parameters given to `self.madx.makethin`.
         '''
+        # Developer's Note: Internal MAD-X commands like 'extract' and 'use' are unreliable. E.g. 'use' of original lattice 
+        # after 'makethin' on an extracted sequence does not work.
         if self.verbose:
             print ('Creating separate MAD-X instance for makethin ...')
         self.madx_thin = init_madx(lattice=self.lattice, show_init=False, stdout=stdout)
@@ -234,7 +366,17 @@ class optics:
 
     def get_one_turn_maps(self, twiss_table=None):
         '''
-        Return list of one-turn-maps at each twiss position.
+        Return a list of one-turn-maps at each twiss position.
+
+        Parameters
+        ----------
+        twiss_table: obj, optional 
+            Twiss table produced by `self.twiss`.
+
+        Returns
+        -------
+        np.array
+            A list M of one turn maps so that M[i, j] corresponds to the MAD-X REij-entries.
         '''
         if twiss_table == None and hasattr(self.madx.table, 'twiss'):
             twiss_table = self.madx.table.twiss
@@ -247,26 +389,32 @@ class optics:
             one_turn_maps[i, j, :] = getattr(twiss_table, f're{i + 1}{j + 1}')
         return one_turn_maps
 
-    def compute_optics_functions(self, n_slices=11, resolution=6, style='simple', **kwargs):
+    def compute_optics_functions(self, n_slices=11, resolution=6, **kwargs):
         '''
         Compute the optics functions for a given lattice, using the MAD-X twiss functionality.
-        
-        INPUT
-        =====
-        n_slices: number of slices to split elements when computing the MAD-X thin lattice
-        resolution: number of points/m for drift sections.
 
-        Recommendation:
-        For quick tests, n_slices=11, resolution=6 should be fine. If more precision is
+        Recommendation: For quick tests, n_slices=11, resolution=6 should be fine. If more precision is
         required, for example to determine the tune, then n_slices=41, resolution=201 turned
         out to be sufficient.
+
+        After invoking this function, the following fields will be updated:
+        `self.function`, `self.function_parameters`
+
+        Parameters
+        ----------
+        n_slices : int, optional
+            number of slices to split elements when computing the MAD-X thin lattice
+        resolution : int, optional
+            number of points/m for drift sections.
+        **kwargs
+            parameters given to `self.makethin`.
         '''
         if self.verbose:
             print ('Computing optics functions with the following parameters:')
             print (f'  n_slices: {n_slices}')
             print (f'resolution: {resolution}')
 
-        self.makethin(n_slices=n_slices, style=style, **kwargs)
+        self.makethin(n_slices=n_slices, **kwargs)
 
         if self.verbose:
             print ('Performing MAD-X twiss on thin lattice ...')
@@ -372,8 +520,18 @@ class optics:
         '''
         Compute natural parameters of the given lattice.
 
-        Run emit: If set to True, update internal MAD-X beam parameters using MAD-X EMIT command.
-        '''        
+        Parameters
+        ----------
+        run_emit : bool, optional
+            Update internal MAD-X beam parameters using MAD-X EMIT command.
+        **kwargs
+            Optional parameters given to `self.compute_optics_functions`.
+
+        Returns
+        -------
+        dict
+            A dictionary containing natural parameters of the lattice.
+        '''
         # run emit to check RF setup
         # get optics functions (required to compute e.g. lower emittance limit and counter-check the
         # synchrotron integrals from MAD-X twiss)
@@ -580,6 +738,16 @@ class optics:
         The underlying MAD-X model is given by
         V_RF = V*sin(2*pi(lag - harmonic*f0*t)) ,
         where V is given in terms of MV.
+
+        Parameters
+        ----------
+        twiss: obj, optional
+            MAD-X twiss table. If nothing specified, a MAD-X twiss will be performed.
+
+        Returns
+        -------
+        dict
+            A dictionary containing the parameters of all 'rfcavity' elements in the lattice.
         '''
         if twiss == None:
             if self.verbose:
@@ -594,9 +762,25 @@ class optics:
 
     def energy_acceptance(self, phase, harmonic, voltage, slip_factor):
         '''
-        Compute energy acceptance and synchrotron revolution of a single RF cavity.
+        Compute energy acceptance of a single RF cavity.
+
+        Parameters
+        ----------
+        phase: float
+            The phase of the RF cavity in [rad] from 0 to 2*pi.
+        harmonic: float
+            The harmonic number of the RF cavity.
+        voltage: float
+            The RF cavity peak current in [V].
+        slip_factor: float
+             slip factor of the lattice.
+
+        Returns
+        -------
+        float
+            The energy acceptance given by the RF cavity.
         '''
-        # compute energy acceptance (see Frank Tecker's notes https://arxiv.org/pdf/2011.02932.pdf)
+        # Compute energy acceptance according to Frank Tecker's notes https://arxiv.org/pdf/2011.02932.pdf .
         G_phi = 2*np.cos(phase) + (2*phase - np.pi)*np.sin(phase)
         beta0 = self.beam.beta.value
         charge = constants.e
@@ -607,9 +791,15 @@ class optics:
         '''
         Update beam parameters using the results stored in the dictionary natural parameters.
 
-        update_ey: If True, then also update y-emittance.
-        coupling_y: Only in effect if update_ey==True. If 0 (default), set ey emittance to theoretical lower limit.
-        If this value is > 0, set ey emittance to coupling_y*ex.
+        Parameters
+        ----------
+        natural_parameters: dict
+            Natural beam parameters obtained by `self.get_natural_parameters`.
+        update_ey: bool, optional
+            If True, then also update y-emittance.
+        coupling_y: float, optional
+            Only in effect if update_ey == True. If 0 (default), set ey emittance to theoretical \\
+            lower limit. If this value is > 0, set ey emittance to coupling_y*ex.
         '''
         old_ex_value = self.beam.ex.value
         self.beam.ex.value = natural_parameters['nat_ex']
@@ -641,12 +831,25 @@ class optics:
             print (f'sigt: OLD: {old_sigt_value}, NEW: {self.beam.sigt.value}')
             print (f'sige: OLD: {old_sige_value}, NEW: {self.beam.sige.value}')
 
-    def touschek_lifetime(self, precise=False, precision=16, symmetry=1, update_ey=False, coupling_y=0, **kwargs):
+    def touschek_lifetime(self, update_ey=False, coupling_y=0, precise=False, precision=16, symmetry=1, **kwargs):
         '''
         Compute the touschek lifetime for the given optics.
 
-        Input parameters:
-        see touschek.touschek.lifetime
+        Parameters
+        ----------
+        coupling_y: float, optional
+            given to `self.update_beam`.
+        update_ey: bool, optional
+            given to `self.update_beam`.
+        precise: bool, optional
+            given to `lifetime`.
+        precision: int, optional
+            given to `lifetime`.
+        symmetry: int, optional
+            given to `lifetime`.
+
+        **kwargs
+            Optional arguments given to `self.get_natural_parameters`.
         '''
         nat = self.get_natural_parameters(**kwargs)
         self.update_beam(nat, update_ey=update_ey, coupling_y=coupling_y)
@@ -654,20 +857,45 @@ class optics:
                         precise=precise, precision=precision, symmetry=symmetry, verbose=self.verbose)
 
     def plot_survey(self, **kwargs):
+        '''
+        See function plot_survey for documentation.
+        '''
         return plot_survey(madx=self.madx, **kwargs)
 
     def plot_touschek_losses(self, touschek_results, **kwargs):
+        '''
+        See function plot_touschek_losses for documentation.
+        '''
         plot_touschek_losses(optics=self, touschek_results=touschek_results, **kwargs)
 
     def test_tune(self, **kwargs):
+        '''
+        See function test_tune for documentation.
+        '''
         if not hasattr(self, 'function'):
             raise ValueError('Error: run compute_optics_functions first.')
         test_tune(optics=self, **kwargs)
 
     def track(self, coordinates, turns: int, **kwargs):
         '''
-        Track a set of particles through the optics.
+        Track a set of particles through the current optics given by self.madx_thin.
+
+        Parameters
+        ----------
+        coordinates: list
+            A list of 6-tuples, each member representing the six start coordinates of a single particle.
+        turns: int
+            The number of turns which should be tracked through the lattice.
+        **kwargs
+            Optional arguments given to `self.madx_thin.track`.
+
+        Returns
+        -------
+        list
+            A list of 6-tuples, each member representing the six end coordinates of a single particle.
         '''
+        if not hasattr(self, 'madx_thin'):
+            raise RuntimeError('No thin-lens lattice found. Run self.makethin first.')
         self.madx_thin.track(**kwargs)
         coordinate_keys = ['x', 'px', 'y', 'py', 't', 'pt']
         n_particles = len(coordinates)
@@ -681,6 +909,20 @@ class optics:
     def track_series(self, coordinates, turns, **kwargs):
         '''
         Track a series of turns; the output coordinates for each series are taken as input arguments for the next.
+
+        Parameters
+        ----------
+        coordinates: list
+            A list of 6-tuples, each member representing the six start coordinates of a single particle.
+        turns: list
+            A list of turns which should be tracked through the lattice.
+        **kwargs
+            Optional arguments given to `self.track`.
+
+        Returns
+        -------
+        np.array
+            An array representing the end-coordinates of the given particles, for each of the given turns.
         '''
         coordinates_all = []
         for t in np.diff([0] + list(turns)):

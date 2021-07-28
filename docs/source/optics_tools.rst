@@ -1,5 +1,5 @@
-Touschek optics tools
-=====================
+Optics tools
+============
 
 .. automodule:: touschek.optics_tools
     :members:

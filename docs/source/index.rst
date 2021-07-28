@@ -12,6 +12,7 @@ accelerator lattice, based on Piwinski's 1998 paper [1]_ and `cpymad <https://gi
 
    optics_tools.rst
    touschek.rst
+   plotting.rst
 
 
 Indices and tables

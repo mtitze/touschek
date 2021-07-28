@@ -83,7 +83,7 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
         ax.set_aspect(1)
     return plt
 
-def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
+def plot_touschek_losses(optics, touschek_results, xlim='auto', with_beta=False,
                          figsize=(16, 4)):
     '''
     Plot the losses due to Touschek-scattering along the machine.
@@ -94,8 +94,10 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
         An instance of optics class.
     touschek_results: dict
         The output of `touschek.lifetime`.
-    xlim: list, optional
-        Tuple [x0, x1] to display the results only from x0 to x1.
+    xlim: list or str, optional
+        Either a tuple [x0, x1] to display the results only from x0 to x1
+        or str == 'auto', in which we display the results according to the
+        underlying symmetry used.
     with_beta: bool, optional
         If True, also show 1/(betax*betay) as indication of the locations with largest losses.
     figsize: tuple, optional
@@ -106,6 +108,10 @@ def plot_touschek_losses(optics, touschek_results, xlim=[], with_beta=False,
     plt.title(f'Touschek lifetime: {touschek_results["lifetime"]/60/60:.3f} [h]', loc='right')
     pos = touschek_results['s']
     values = touschek_results['touschek_const']*touschek_results['touschek_ring']    
+    
+    if xlim == 'auto':
+        xlim = [0, touschek_results['s'][-1]/touschek_results['symmetry']]
+
     if len(xlim) > 0:
         lim_indices = np.logical_and(pos >= xlim[0], pos <= xlim[-1])
         pos = pos[lim_indices]

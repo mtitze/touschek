@@ -22,9 +22,14 @@ beam = {'PARTICLE': 'ELECTRON', 'ENERGY': 1.7, 'EX': 7.54543712e-09, 'EY': 1.2e-
 # Create optics class with given lattice and beam parameters:
 opt = optics_tools.optics(lattice_filename, beam_params=beam, show_init=False, verbose=True)
 
-# Compute Touschek-lifetime, here assuming a certain machine symmetry for speed increase and using
-# fast routine (precise == False). The optional coupling parameter coupling_y can be used to enlarge EY by coupling_y*EX:
-touschek_results = opt.touschek_lifetime(precise=False, symmetry=8, coupling_y=0.02)
+# Compute Touschek-lifetime, here assuming a machine symmetry of 8 which will increase the calculation speed.
+# We also use the fast routine (precise == False). The optional coupling parameter coupling_y can be used to enlarge EY by coupling_y*EX:
+symmetry = 8
+touschek_results = opt.touschek_lifetime(precise=False, symmetry=symmetry, coupling_y=0.02)
+
+# Plot the results
+circumference = touschek_results['s'][-1]
+opt.plot_touschek_losses(touschek_results=touschek_results, xlim=[0, circumference/symmetry])
 ```
 
 ## Further reading

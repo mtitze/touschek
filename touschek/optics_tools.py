@@ -1,4 +1,3 @@
-from os import sync
 from cpymad.madx import Madx
 import numpy as np
 import pandas as pd

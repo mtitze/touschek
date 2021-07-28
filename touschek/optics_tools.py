@@ -510,7 +510,7 @@ class optics:
         function['k1bends_y'] = np.concatenate((k1bends_y, np.hstack(additional_k1bends_y)))[sindices]
 
         self.function = function
-        self.function_parameters = {'n_slices': n_slices, 'resolution': resolution, 'style': style}
+        self.function_parameters = {'n_slices': n_slices, 'resolution': resolution}
 
         if self.verbose:
             if any(function['k1bends_x'] != 0) or any(function['k1bends_y'] != 0):

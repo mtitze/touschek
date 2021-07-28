@@ -24,12 +24,10 @@ opt = optics_tools.optics(lattice_filename, beam_params=beam, show_init=False, v
 
 # Compute Touschek-lifetime, here assuming a machine symmetry of 8 which will increase the calculation speed.
 # We also use the fast routine (precise == False). The optional coupling parameter coupling_y can be used to enlarge EY by coupling_y*EX:
-symmetry = 8
-touschek_results = opt.touschek_lifetime(precise=False, symmetry=symmetry, coupling_y=0.02)
+touschek_results = opt.touschek_lifetime(precise=False, symmetry=8, coupling_y=0.02)
 
 # Plot the results
-circumference = touschek_results['s'][-1]
-opt.plot_touschek_losses(touschek_results=touschek_results, xlim=[0, circumference/symmetry])
+opt.plot_touschek_losses(touschek_results=touschek_results)
 ```
 
 ## Further reading

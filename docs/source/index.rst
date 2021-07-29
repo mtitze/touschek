@@ -1,7 +1,7 @@
-Welcome to Touschek's documentation!
-====================================
+Welcome to touscheklib's documentation!
+=======================================
 
-Touschek is a lightweight script to calcluate the Touschek-lifetime of a given
+`touscheklib` is a lightweight script to calcluate the Touschek-lifetime of a given
 accelerator lattice, based on Piwinski's 1998 paper [1]_ and `cpymad <https://github.com/hibtc/cpymad>`_.
 
 .. toctree::
@@ -11,7 +11,7 @@ accelerator lattice, based on Piwinski's 1998 paper [1]_ and `cpymad <https://gi
    README.md
 
    optics_tools.rst
-   touschek.rst
+   touscheklib.rst
    plotting.rst
 
 

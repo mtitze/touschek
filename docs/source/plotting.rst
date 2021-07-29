@@ -1,5 +1,5 @@
 Plotting functions
 ==================
 
-.. automodule:: touschek.plotting
+.. automodule:: touscheklib.plotting
     :members:

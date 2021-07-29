@@ -17,12 +17,12 @@ sys.path.insert(0, os.path.abspath('../..'))
 
 # -- Project information -----------------------------------------------------
 
-project = 'Touschek'
+project = 'touscheklib'
 copyright = '2021, Malte Titze'
 author = 'Malte Titze'
 
 # The full version, including alpha/beta/rc tags
-from touschek._version import __version__
+from touscheklib._version import __version__
 release = __version__
 
 

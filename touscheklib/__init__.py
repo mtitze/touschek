@@ -1,4 +1,4 @@
-from touschek._version import __version__
+from touscheklib._version import __version__
 import numpy as np
 
 def dee_to_dpp(dee, beta0):

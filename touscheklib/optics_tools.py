@@ -6,9 +6,9 @@ import itertools
 
 import warnings
 
-from touschek.plotting import plot_survey, plot_touschek_losses
-from touschek.touschek import lifetime
-from touschek import dee_to_dpp
+from touscheklib.plotting import plot_survey, plot_touschek_losses
+from touscheklib.touschek import lifetime
+from touscheklib import dee_to_dpp
 
 def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
     '''

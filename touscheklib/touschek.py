@@ -1,29 +1,17 @@
 # Script to compute the Touschek lifetime.
 
 import numpy as np
-import argparse
 from scipy import integrate, constants
 from scipy.special import iv
 import progressbar
 import mpmath as mp
 
-from touschek import dee_to_dpp
+from touscheklib import dee_to_dpp
 
 '''
 References:
 [1] A. Piwinski: "THE TOUSCHEK EFFECT IN STRONG FOCUSING STORAGE RINGS", DESY 98-179 (1998).
 '''
-
-if __name__ == "__main__":
-    from _version import __version__
-    description = 'Touschek liftime calculator', 
-    epilog=f"v{__version__} by Malte Titze"
-    parser = argparse.ArgumentParser(description=description, epilog=epilog)
-    parser.add_argument('latticefile', type=str, help="lattice filename")
-    parser.add_argument('--beamfile', dest='beamfile', default='', type=str, help="MAD-X beam input filename")
-    parser_namespace = parser.parse_args()
-    lattice_filename = parser_namespace.latticefile
-    # need to initiate optics class here
 
 def F_integrand(kappa, kappa_m, b1, b2, kappatol=1e-5, exptol=500):
     '''

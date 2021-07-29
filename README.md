@@ -5,15 +5,15 @@
 Install this module with pip
 
 ```sh
-pip install -U git+https://github.com/mtitze/touschek.git
+pip install -U git+https://github.com/mtitze/touscheklib.git
 ```
 
 ## Usage
 
 ```python
-from touschek import optics_tools
+from touscheklib import optics_tools
 
-lattice_filename = 'name_of_your_lattice'
+lattice_filename = 'name_of_your_MAD-X_lattice' # don't forget an RF cavity.
 
 # Set some beam input parameters. Note that EX and EY may be changed later, when the natural parameters
 # are computed:

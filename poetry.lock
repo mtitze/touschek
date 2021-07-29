@@ -392,7 +392,7 @@ python-versions = ">=3.5"
 name = "mpmath"
 version = "1.2.1"
 description = "Python library for arbitrary-precision floating-point arithmetic"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -848,7 +848,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pyt
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.8,<3.10"
-content-hash = "eef659f7198fe06deec573b8444fab621ee9b2e4cb10dd9677aa64b3ad957130"
+content-hash = "9c14ddb415df72a44cdc6f1beb00611b20b0c698d5d6c50022e491a2ac2d2e18"
 
 [metadata.files]
 alabaster = [

@@ -1,1 +1,2 @@
-__version__ = '0.6.0'
+import pkg_resources
+__version__ = pkg_resources.get_distribution('touscheklib').version

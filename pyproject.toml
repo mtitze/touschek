@@ -14,14 +14,12 @@ progressbar = "^2.5"
 pandas = "^1.2.4"
 myst-parser = "^0.15.1"
 mpmath = "^1.2.1"
-sphinx-rtd-theme = "^0.5.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
-pandas = "^1.2.4"
 ipykernel = "^5.5.5"
-mpmath = "^1.2.1"
 Sphinx = "^4.1.1"
+sphinx-rtd-theme = "^0.5.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

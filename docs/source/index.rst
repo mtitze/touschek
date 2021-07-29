@@ -5,6 +5,8 @@ Welcome to touscheklib's documentation!
 accelerator lattice, based on Piwinski's 1998 paper [1]_, `cpymad <https://github.com/hibtc/cpymad>`_
 and `mpmath <https://mpmath.org/>`_.
 
+Latest version: |release|
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:

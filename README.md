@@ -2,6 +2,8 @@
 
 ## Installation
 
+It is recommended to perform the installation inside a virtual environment.
+
 Install this module with pip
 
 ```sh

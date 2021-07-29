@@ -13,7 +13,6 @@ input/
 
 # other files
 results*
-poetry.lock
 
 normal.py
 mertens*

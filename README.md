@@ -32,4 +32,4 @@ opt.plot_touschek_losses(touschek_results=touschek_results)
 
 ## Further reading
 
-https://touschek.readthedocs.io/en/latest/index.html
+https://touscheklib.readthedocs.io/en/latest/index.html

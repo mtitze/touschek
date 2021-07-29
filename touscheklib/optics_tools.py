@@ -19,7 +19,7 @@ def init_madx(lattice: str, show_init=True, verbose=True, **kwargs):
     lattice
         Filename of the MAD-X lattice.
     show_init : bool, optional
-        Show the MAD-X initialization (default: False).
+        Show the MAD-X initialization.
     verbose : bool, optional
         Verbose mode.
     **kwargs

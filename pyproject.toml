@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "touschek"
-version = "0.1.0"
+name = "touscheklib"
+version = "0.6.0"
 description = ""
 authors = ["Malte Titze <mtitze@users.noreply.github.com>"]
 

@@ -30,16 +30,35 @@ touschek_results = opt.touschek_lifetime(precise=False, symmetry=8, coupling_y=0
 opt.plot_touschek_losses(touschek_results=touschek_results)
 ```
 
+`touscheklib` can also be run as script from the command line:
+
+```
+python -m touscheklib <lattice_filename> <json_beam_filename> [optional arguments]
+```
+
+Show command line syntax:
+
+```
+python -m touscheklib -h
+```
+
 ## Further reading
 
 https://touscheklib.readthedocs.io/en/latest/index.html
 
 ## License
 
-Copyright (c) 2021 by Malte Titze.
+This file is part of touscheklib.
 
-This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+touscheklib is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+touscheklib is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-You should have received a copy of the GNU General Public License along with this program. If not, see http://www.gnu.org/licenses/.
+You should have received a copy of the GNU General Public License
+along with touscheklib.  If not, see <https://www.gnu.org/licenses/>.

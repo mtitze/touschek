@@ -16,8 +16,10 @@ results*
 
 normal.py
 mertens*
+tests/beamfile
 
 # documentation output
 docs/build/*
 docs/make.bat
 docs/Makefile
+

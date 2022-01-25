@@ -98,11 +98,12 @@ def prepare_touschek(optics, delta_pm, verbose=True):
 
     if verbose:
         print ('\n*** Touschek lifetime input parameters ***')
-        print (f'     Np: {N_p}')
-        print (f' ex_rms: {epsilon_x}')
-        print (f' ey_rms: {epsilon_y}')
-        print (f'   dp/p: {delta_p}')
-        print (f'sigma_s: {sigma_s}\n')
+        print (f'      Np: {N_p}')
+        print (f'  ex_rms: {epsilon_x}')
+        print (f'  ey_rms: {epsilon_y}')
+        print (f'    dp/p: {delta_p}')
+        print (f'[dp/p]_m: {delta_pm} (momentum acceptance)')
+        print (f' sigma_s: {sigma_s}\n')
         print ('*** Optics resolution ***')
         print (f"        n_slices: {optics.function_parameters['n_slices']}")
         print (f"drift resolution: {optics.function_parameters['resolution']}")

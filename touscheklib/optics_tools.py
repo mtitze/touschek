@@ -405,15 +405,13 @@ class optics:
             number of slices to split elements when computing the MAD-X thin lattice
         resolution : int, optional
             number of points/m for drift sections.
-        **kwargs
-            parameters given to `self.makethin`.
         '''
         if self.verbose:
             print ('Computing optics functions with the following parameters:')
             print (f'  n_slices: {n_slices}')
             print (f'resolution: {resolution}')
 
-        self.makethin(n_slices=n_slices, **kwargs)
+        self.makethin(n_slices=n_slices)
 
         if self.verbose:
             print ('Performing MAD-X twiss on thin lattice ...')
@@ -852,7 +850,8 @@ class optics:
         '''
         nat = self.get_natural_parameters(**kwargs)
         self.update_beam(nat, update_ey=update_ey, coupling_y=coupling_y)
-        return lifetime(optics=self, delta_pm=nat['momentum_acceptance'], 
+        delta_pm = kwargs.get('delta_pm', nat['momentum_acceptance'])
+        return lifetime(optics=self, delta_pm=delta_pm, 
                         precise=precise, precision=precision, symmetry=symmetry, verbose=self.verbose)
 
     def plot_survey(self, **kwargs):

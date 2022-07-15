@@ -14,11 +14,10 @@ progressbar = "^2.5"
 pandas = "^1.2.4"
 myst-parser = "^0.15.1"
 mpmath = "^1.2.1"
-toml = "^0.10.2"
 pillow = ">=9.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = ">=7.1.2"
 ipykernel = "^5.5.5"
 Sphinx = "^4.1.1"
 sphinx-rtd-theme = "^0.5.2"

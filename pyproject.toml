@@ -5,10 +5,10 @@ description = ""
 authors = ["Malte Titze <mtitze@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.8, <3.10"
+python = ">=3.10,<3.11"
 cpymad = "^1.8.1"
 argparse = "^1.4.0"
-scipy = "^1.6.3"
+scipy = ">=1.8.1"
 matplotlib = "^3.4.2"
 progressbar = "^2.5"
 pandas = "^1.2.4"

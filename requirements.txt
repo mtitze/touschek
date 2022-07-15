@@ -63,9 +63,6 @@ idna==3.3; python_version >= "3.7" and python_version < "4" \
 imagesize==1.4.1; python_version >= "3.6" and python_full_version < "3.0.0" or python_full_version >= "3.4.0" and python_version >= "3.6" \
     --hash=sha256:0d8d18d08f840c19d0ee7ca1fd82490fdc3729b7ac93f49870406ddde8ef8d8b \
     --hash=sha256:69150444affb9cb0d5cc5a92b3676f0b2fb7cd9ae39e947a5e11a36b4497cd4a
-importlib-metadata==4.12.0; python_version < "3.10" and python_version >= "3.7" \
-    --hash=sha256:7401a975809ea1fdc658c3aa4f78cc2195a0e019c5cbc4c06122884e9ae80c23 \
-    --hash=sha256:637245b8bab2b6502fcbc752cc4b7a6f6243bb02b31c5c26156ad103d3d45670
 importlib-resources==5.8.0; python_version >= "3.7" \
     --hash=sha256:7952325ffd516c05a8ad0858c74dff2c3343f136fe66a6002b2623dd1d43f223 \
     --hash=sha256:568c9f16cb204f9decc8d6d24a572eeea27dacbb4cee9e6b03a8025736769751
@@ -208,7 +205,7 @@ mpmath==1.2.1 \
 myst-parser==0.15.2; python_version >= "3.6" \
     --hash=sha256:f7f3b2d62db7655cde658eb5d62b2ec2a4631308137bd8d10f296a40d57bbbeb \
     --hash=sha256:40124b6f27a4c42ac7f06b385e23a9dcd03d84801e9c7130b59b3729a554b1f9
-numpy==1.23.1 \
+numpy==1.23.1; python_version >= "3.10" and python_version < "3.11" \
     --hash=sha256:b15c3f1ed08df4980e02cc79ee058b788a3d0bef2fb3c9ca90bb8cbd5b8a3a04 \
     --hash=sha256:9ce242162015b7e88092dccd0e854548c0926b75c7924a3495e02c6067aba1f5 \
     --hash=sha256:e0d7447679ae9a7124385ccf0ea990bb85bb869cef217e2ea6c844b6a6855073 \
@@ -432,6 +429,3 @@ typing-extensions==4.3.0; python_version >= "3.7" \
 urllib3==1.26.10; python_version >= "3.7" and python_full_version < "3.0.0" and python_version < "4" or python_full_version >= "3.6.0" and python_version < "4" and python_version >= "3.7" \
     --hash=sha256:8298d6d56d39be0e3bc13c1c97d133f9b45d797169a0e11cdd0e0489d786f7ec \
     --hash=sha256:879ba4d1e89654d9769ce13121e0f94310ea32e8d2f8cf587b77c08bbcdb30d6
-zipp==3.8.1; python_version < "3.10" and python_version >= "3.7" \
-    --hash=sha256:47c40d7fe183a6f21403a199b3e4192cca5774656965b0a4988ad2f8feb5f009 \
-    --hash=sha256:05b45f1ee8f807d0cc928485ca40a07cb491cf092ff587c0df9cb1fd154848d2

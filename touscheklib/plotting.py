@@ -83,7 +83,7 @@ def plot_survey(madx, kmin=None, kmax=None, figsize=(12, 12), s=3, aspect=True):
         ax.set_aspect(1)
     return plt
 
-def plot_touschek_losses(optics, touschek_results, xlim='auto', with_beta=False,
+def plot_touschek_losses(optics, touschek_results, xlim='auto', ylim='auto', with_beta=False,
                          figsize=(16, 4)):
     '''
     Plot the losses due to Touschek-scattering along the machine.
@@ -120,6 +120,9 @@ def plot_touschek_losses(optics, touschek_results, xlim='auto', with_beta=False,
     plt.plot(pos, values, label='losses')
     plt.ylabel(r'$\frac{r_p^2 c N_p F(\tau_m, B_1, B_2)}{8 \pi \gamma^2 \tau_m \sigma_s \sqrt{\sigma_x^2 \sigma_y^2 - \delta^4 D_x^2 D_y^2}}$ [1/s]',
             fontsize=14)
+    
+    if ylim != 'auto':
+        plt.ylim(ylim)
 
 
     exclude_in_ticks = ['marker']

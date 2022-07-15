@@ -1,4 +1,9 @@
 import numpy as np
+import toml
+import os
+
+tomldict = toml.load(f'{os.path.dirname(__file__)}/../pyproject.toml')
+__version__ = tomldict['tool']['poetry']['version']
 
 def dee_to_dpp(dee, beta0):
     '''

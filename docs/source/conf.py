@@ -22,7 +22,7 @@ copyright = '2021, Malte Titze'
 author = 'Malte Titze'
 
 # The full version, including alpha/beta/rc tags
-from touscheklib._version import __version__
+from touscheklib import __version__
 release = __version__
 
 

@@ -1,4 +1,4 @@
-from touscheklib._version import __version__
+from touscheklib import __version__
 from touscheklib import optics_tools
 import argparse
 import json

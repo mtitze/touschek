@@ -558,19 +558,19 @@ class optics:
         betay = self.function.betay.values
         gammax = self.function.gammax.values
 
-        si1 = sum(Dx[1:]*rho_inv_x[1:]*ds)
-        si2 = sum(rho_inv_x[1:]**2*ds)
-        si3 = sum(abs(rho_inv_x[1:])**3*ds)
+        si1 = sum(Dx[1:]*rho_inv_x[1:]*ds) # for the reference: Wolski, p. 164
+        si2 = sum(rho_inv_x[1:]**2*ds) # Wolski, p. 221
+        si3 = sum(abs(rho_inv_x[1:])**3*ds) # Wolski, p. 236
 
         k1bends_x = self.function.k1bends_x.values  # the quadrupole gradient in the dipole fields
         k1bends_y = self.function.k1bends_y.values  # the quadrupole gradient in the dipole fields
         # In MAD-X the quadrupole gradient in the bends needs to be divided by
         # the length ds. Therefore ds canceled for these terms.
-        si4 = sum(Dx[1:]*rho_inv_x[1:]*(rho_inv_x[1:]**2*ds + 2*k1bends_x[1:]))
+        si4 = sum(Dx[1:]*rho_inv_x[1:]*(rho_inv_x[1:]**2*ds + 2*k1bends_x[1:])) # Wolski, p. 225
         si4_y = sum(Dy[1:]*rho_inv_y[1:]*(rho_inv_y[1:]**2*ds + 2*k1bends_y[1:]))
 
         Hx = gammax*Dx**2 + 2*alphax*Dx*Dxp + betax*Dxp**2
-        si5 = sum(Hx[1:]*abs(rho_inv_x[1:])**3*ds)
+        si5 = sum(Hx[1:]*abs(rho_inv_x[1:])**3*ds) # Wolski, p. 233
 
         # DERIVED QUANTITIES
         ####################
@@ -627,13 +627,16 @@ class optics:
 
         if self.verbose:
             print ()
+            print (f'Energy [GeV]: {self.beam.energy.value}')
+            print (f'Cq: {Cq}')
             print (f'Relativistic gamma: {gamma0}')
             print (f'rf total voltage [MV] = {voltage/(1e6)}')
             print (f'rf cavity lag [rad] = {rf_lag}')
             print (f'phi[rad] = {phi}')
             print (f'phi[degree] = {phi*180/np.pi}')
             print (f'MAD-X LAG correction: phi[rad]/(2*PI) = {madx_phi}')
-            print (f'energy acceptance: {energy_acceptance} (assuming a single effective RF cavity)')
+            print (f'Energy acceptance: {energy_acceptance} (assuming a single effective RF cavity)')
+            print (f'Over voltage factor: {1/sin_phi}')
 
         # get the synchrotron frequency (Wiedemann, p. 202)
         t_rev = circumference/(beta0*constants.speed_of_light) # revolution time
@@ -670,6 +673,9 @@ class optics:
             print (f'damping time x [s]: {t_damping_x}')
             print (f'damping time y [s]: {t_damping_y}')
             print (f'damping time z [s]: {t_damping_z}')
+            print (f'damping partition number jx: {jx}')
+            print (f'damping partition number jy: {jy}')
+            print (f'damping partition number jz: {jz}')
             print ('Robinson damping theorem: 4 = jx + jy + jz: {}'.format(jx + jy + jz))
 
         # natural bunch length, see Wolski, p.237 Eq. (7.96)
@@ -717,7 +723,11 @@ class optics:
             #print (f'expected pulse length [ps]: {pulse_length_ps_v3}, FWHM: {pulse_length_ps_v3*2.355}')
 
         # collect and return results
-        return {'circumference': circumference, 'si1': si1, 'si2': si2, 'si3': si3, 'si4': si4, 'si5': si5,
+        return {'circumference': circumference, 'energy_gev': self.beam.energy.value,
+                'si1': si1, 'si2': si2, 'si3': si3, 'si4': si4, 'si5': si5,
+                'jx': jx, 'jy': jy, 'jz': jz,
+                'over_voltage_factor': 1/sin_phi, 'Cq': Cq,
+                'gamma0': gamma0, 'beta0': beta0,
          'Cgamma': Cgamma, 'u0': u0, 'u0_ev': u0_eV, 'momentum_compaction': momentum_compaction,
          'gamma_tr': gamma_tr, 'slip_factor': slip_factor, 'nat_ex': natural_emittance_x,
          'nat_ey_lb': natural_emittance_y_limit, 'nat_dee': natural_dee, 'nat_dpp': natural_dpp,

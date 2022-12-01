@@ -89,7 +89,7 @@ def get_beam_parameters(madx):
             #'particle': {'value': madx.beam.particle, 'description': 'particle type'}
 
 def beta_drift(s, alpha, gamma):
-    '''
+    r'''
     Compute the beta-function of a drift if alpha and gamma are known at position s.
 
     Parameters
